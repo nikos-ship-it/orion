@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orion Ouzeri — Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&amp;family=Manrope:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<style>
+  html,body{margin:0;height:100%;background:#EFE7D7;font-family:Manrope,"Helvetica Neue",Helvetica,sans-serif}
+  #map{position:absolute;inset:0;background:#EFE7D7}
+  .leaflet-container{background:#EFE7D7;font-family:Manrope,sans-serif}
+  .om-fallback .leaflet-tile-pane{filter:sepia(.42) saturate(1.05) brightness(1.05) contrast(.95)}
+  .leaflet-control-attribution{background:rgba(250,245,235,.86)!important;color:#8A7A63!important;font-size:10px!important;padding:3px 8px!important}
+  .leaflet-control-attribution a{color:#0E3550!important;text-decoration:none}
+
+  .om-pin{position:relative}
+  .om-pin i{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#C4622D;box-shadow:0 0 0 4px #FDFBF6,0 6px 18px rgba(74,58,40,.34)}
+  .om-pin b{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:1px solid rgba(196,98,45,.8);animation:om-pulse 2.8s cubic-bezier(.22,.61,.24,1) infinite}
+  @keyframes om-pulse{0%{transform:scale(.42);opacity:.9}70%{transform:scale(1.25);opacity:0}100%{opacity:0}}
+  .om-label{position:absolute;left:50%;top:20px;transform:translateX(-50%);white-space:nowrap;background:#0E3550;color:#FDFBF6;padding:7px 12px;font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(74,58,40,.26)}
+
+  .om-ui{position:absolute;z-index:600;display:flex;gap:8px}
+  .om-zoom{right:14px;top:14px;flex-direction:column}
+  .om-zoom button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:#FDFBF6;color:#0E3550;border:1px solid rgba(138,122,99,.28);font-size:17px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(74,58,40,.12);transition:background .3s ease,color .3s ease}
+  .om-zoom button:hover{background:#0E3550;color:#FDFBF6}
+
+  .om-veil{position:absolute;inset:0;z-index:590;display:flex;align-items:center;justify-content:center;background:rgba(196,98,45,.05);cursor:pointer;transition:opacity .5s ease}
+  .om-veil span{background:rgba(253,251,246,.94);color:#0E3550;padding:12px 20px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(74,58,40,.16)}
+  .om-veil.off{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="om-ui om-zoom">
+  <button type="button" id="zin" aria-label="Zoom in">+</button>
+  <button type="button" id="zout" aria-label="Zoom out">–</button>
+</div>
+<div class="om-veil" id="veil"><span>Click to explore the map</span></div>
+<script>
+  var ORION = [35.31010, 25.40300];
+  var TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  var ATTR = '© OpenStreetMap contributors';
+
+  function rgb2hsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0;
+    var l = (mx + mn) / 2, s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    if (d !== 0) {
+      if (mx === r) h = 60 * (((g - b) / d) % 6);
+      else if (mx === g) h = 60 * ((b - r) / d + 2);
+      else h = 60 * ((r - g) / d + 4);
+    }
+    if (h < 0) h += 360;
+    return [h, s, l];
+  }
+  function hsl2rgb(h, s, l) {
+    var c = (1 - Math.abs(2 * l - 1)) * s, hp = h / 60, x = c * (1 - Math.abs(hp % 2 - 1)), m = l - c / 2, r, g, b;
+    if (hp < 1) { r = c; g = x; b = 0; } else if (hp < 2) { r = x; g = c; b = 0; }
+    else if (hp < 3) { r = 0; g = c; b = x; } else if (hp < 4) { r = 0; g = x; b = c; }
+    else if (hp < 5) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; }
+    return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+  }
+
+  // Mediterranean palette: aegean water, limestone land, olive greenery, terracotta warmth.
+  function recolor(data) {
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue;
+      var hsl = rgb2hsl(data[i], data[i + 1], data[i + 2]);
+      var h = hsl[0], s = hsl[1], l = hsl[2], out;
+      if (s > 0.07 && h >= 168 && h <= 248) {           // water
+        out = hsl2rgb(193, 0.44, Math.min(0.78, 0.30 + l * 0.44));
+      } else if (s > 0.06 && h >= 62 && h < 168) {       // parks, trees
+        out = hsl2rgb(74, 0.26, Math.min(0.86, l * 0.98));
+      } else if (l > 0.9) {                              // paper, road fill
+        out = hsl2rgb(38, 0.30, Math.min(0.965, l * 0.985));
+      } else {                                           // buildings, roads, labels
+        out = hsl2rgb(l > 0.45 ? 30 : 26, Math.min(0.26, s * 0.5 + 0.10), l);
+      }
+      data[i] = out[0]; data[i + 1] = out[1]; data[i + 2] = out[2];
+    }
+  }
+
+  var Med = L.GridLayer.extend({
+    createTile: function (coords, done) {
+      var size = this.getTileSize();
+      var canvas = L.DomUtil.create('canvas');
+      canvas.width = size.x; canvas.height = size.y;
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0, size.x, size.y);
+        try {
+          var d = ctx.getImageData(0, 0, size.x, size.y);
+          recolor(d.data);
+          ctx.putImageData(d, 0, 0);
+          canvas.dataset.recolored = '1';
+        } catch (e) {
+          document.body.classList.add('om-fallback');
+        }
+        done(null, canvas);
+      };
+      img.onerror = function () { done(null, canvas); };
+      img.src = L.Util.template(TILE_URL, L.extend({ r: '', s: 'a' }, coords));
+      return canvas;
+    }
+  });
+
+  var map = L.map('map', {
+    center: ORION, zoom: 17, minZoom: 12, maxZoom: 18,
+    zoomControl: false, scrollWheelZoom: false
+  });
+  new Med({ maxZoom: 19, attribution: ATTR, updateWhenIdle: false }).addTo(map);
+
+  L.marker(ORION, {
+    icon: L.divIcon({ className: 'om-pin', html: '<b></b><i></i><div class="om-label">Orion Ouzeri</div>', iconSize: [0, 0] }),
+    keyboard: false, title: 'Orion Ouzeri — Kallergi 8'
+  }).addTo(map);
+
+  document.getElementById('zin').onclick = function () { map.zoomIn(); };
+  document.getElementById('zout').onclick = function () { map.zoomOut(); };
+
+  var veil = document.getElementById('veil');
+  veil.addEventListener('click', function () { veil.classList.add('off'); map.scrollWheelZoom.enable(); });
+  map.on('mouseout', function () { map.scrollWheelZoom.disable(); veil.classList.remove('off'); });
+
+  function recenter() { map.setView(ORION, map.getZoom(), { animate: false }); }
+  window.addEventListener('resize', function () { map.invalidateSize(); recenter(); });
+  setTimeout(function () { map.invalidateSize(); recenter(); }, 300);
+</script>
+</body>
+</html>
