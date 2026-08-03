@@ -6,6 +6,20 @@
   /* ── Header state + parallax ──────────────────────────────────── */
 
   var header = document.getElementById('site-header');
+  var progress = document.getElementById('progress');
+
+  /* The CSS clamp for --header-h is only a pre-JS estimate; the real height
+     depends on the logo's intrinsic ratio and the fluid padding, and getting it
+     wrong drops anchor targets underneath the fixed header. Measure it. */
+  function syncHeaderHeight() {
+    if (!header) return;
+    var h = Math.round(header.getBoundingClientRect().height);
+    // A little air so a heading never butts against the header edge.
+    document.documentElement.style.setProperty('--header-h', (h + 24) + 'px');
+  }
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight);
+  window.addEventListener('load', syncHeaderHeight);
   var parallaxEls = Array.prototype.slice.call(document.querySelectorAll('[data-parallax]'));
   var PARALLAX_RANGE = 26;
   var past = null;
@@ -16,6 +30,13 @@
       past = isPast;
       header.classList.toggle('is-past', isPast);
     }
+
+    if (progress) {
+      var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      var ratio = scrollable > 0 ? window.scrollY / scrollable : 0;
+      progress.style.transform = 'scaleX(' + Math.min(1, Math.max(0, ratio)).toFixed(4) + ')';
+    }
+
     if (reduceMotion) return;
     parallaxEls.forEach(function (el) {
       var r = el.parentElement.getBoundingClientRect();
@@ -37,6 +58,57 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
   frame();
+
+  /* ── Preloader ────────────────────────────────────────────────── */
+
+  var preloader = document.getElementById('preloader');
+  if (preloader) {
+    var dismissed = false;
+    var dismiss = function () {
+      if (dismissed) return;
+      dismissed = true;
+      preloader.classList.add('is-done');
+      // Drop it from the tree once faded so it can never trap focus or clicks.
+      setTimeout(function () { preloader.remove(); }, 1000);
+    };
+
+    // Give the intro animation room to read, but never gate on it.
+    var MIN_MS = reduceMotion ? 0 : 1600;
+    var started = Date.now();
+    var whenReady = function () {
+      setTimeout(dismiss, Math.max(0, MIN_MS - (Date.now() - started)));
+    };
+
+    if (document.readyState === 'complete') whenReady();
+    else window.addEventListener('load', whenReady);
+
+    // Hard ceiling: a stalled or failed asset must not leave the page hidden.
+    setTimeout(dismiss, 2500);
+  }
+
+  /* ── Active section in the nav ────────────────────────────────── */
+
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-link[href^="#"]'));
+  var sections = navLinks
+    .map(function (a) { return document.querySelector(a.getAttribute('href')); })
+    .filter(Boolean);
+
+  if (sections.length && 'IntersectionObserver' in window) {
+    var setCurrent = function (id) {
+      navLinks.forEach(function (a) {
+        if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true');
+        else a.removeAttribute('aria-current');
+      });
+    };
+    // A band across the middle of the viewport decides which section is "current",
+    // so the marker changes at a natural reading position rather than at the edge.
+    var sectionObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) setCurrent(en.target.id);
+      });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    sections.forEach(function (el) { sectionObserver.observe(el); });
+  }
 
   /* ── Reveal on scroll ─────────────────────────────────────────── */
 

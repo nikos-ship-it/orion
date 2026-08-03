@@ -32,7 +32,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Manrope:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
 
@@ -100,6 +100,19 @@
 </script>
 </head>
 <body>
+<div class="preloader" id="preloader" role="status" aria-label="Loading">
+  <div class="preloader__logo">
+    <img src="assets/orion-logo-light.png" alt="" width="104">
+  </div>
+  <p class="preloader__word">
+    <span class="preloader__line preloader__line--1">Welcome to</span>
+    <span class="preloader__line preloader__line--2">Orion Ouzeri</span>
+  </p>
+  <div class="preloader__rule"></div>
+</div>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
 <a class="skip-link" href="#story">Skip to content</a>
 
 <header class="site-header" id="site-header">

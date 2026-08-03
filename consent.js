@@ -33,9 +33,10 @@
   bar.className = 'consent';
   bar.setAttribute('role', 'dialog');
   bar.setAttribute('aria-label', 'Cookie consent');
+  // Kept short on purpose: on a phone this bar sits over the hero, and a longer
+  // sentence pushed it tall enough to bury the "View Menu" button.
   bar.innerHTML =
-    '<p class="consent__text">We use Google Analytics to understand how this site is used. ' +
-    'No analytics cookies are set unless you accept.</p>' +
+    '<p class="consent__text">We use Google Analytics. No cookies are set unless you accept.</p>' +
     '<div class="consent__actions">' +
       '<button type="button" class="consent__accept">Accept</button>' +
       '<button type="button" class="consent__decline">Decline</button>' +
@@ -45,6 +46,7 @@
     remember(choice);
     if (choice === 'granted') grant();
     bar.classList.remove('is-in');
+    document.documentElement.classList.remove('has-consent');
     // Matches the CSS transition; removing it early would kill the fade.
     setTimeout(function () { bar.remove(); }, 400);
   }
@@ -53,5 +55,16 @@
   bar.querySelector('.consent__decline').addEventListener('click', function () { close('denied'); });
 
   document.body.appendChild(bar);
+
+  // On a phone the bar sits directly over the hero's primary CTA. Publish its
+  // measured height so the hero can reserve room for it, and re-measure on
+  // resize since the text rewraps.
+  var publishHeight = function () {
+    document.documentElement.style.setProperty('--consent-h', bar.offsetHeight + 'px');
+  };
+  publishHeight();
+  window.addEventListener('resize', publishHeight);
+  document.documentElement.classList.add('has-consent');
+
   requestAnimationFrame(function () { bar.classList.add('is-in'); });
 })();

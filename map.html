@@ -6,30 +6,59 @@
 <title>Orion Ouzeri — Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&amp;family=Manrope:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&amp;family=Jost:wght@300;400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <style>
-  html,body{margin:0;height:100%;background:#EFE7D7;font-family:Manrope,"Helvetica Neue",Helvetica,sans-serif}
-  #map{position:absolute;inset:0;background:#EFE7D7}
-  .leaflet-container{background:#EFE7D7;font-family:Manrope,sans-serif}
-  .om-fallback .leaflet-tile-pane{filter:sepia(.42) saturate(1.05) brightness(1.05) contrast(.95)}
-  .leaflet-control-attribution{background:rgba(250,245,235,.86)!important;color:#8A7A63!important;font-size:10px!important;padding:3px 8px!important}
+  /* Palette: bone land, desaturated Aegean water, sage greenery. Lower
+     saturation than a stock map reads as more considered — the pin is the only
+     saturated thing on screen, so the eye goes straight to it. */
+  html,body{margin:0;height:100%;background:#F4F1EA;font-family:Jost,"Helvetica Neue",Helvetica,sans-serif}
+  #map{position:absolute;inset:0;background:#F4F1EA}
+  .leaflet-container{background:#F4F1EA;font-family:Jost,sans-serif}
+  .om-fallback .leaflet-tile-pane{filter:saturate(.55) sepia(.16) brightness(1.04) contrast(.94)}
+  .leaflet-control-attribution{background:rgba(244,241,234,.9)!important;color:#8C8579!important;font-size:10px!important;padding:3px 8px!important;border-radius:999px 0 0 0}
   .leaflet-control-attribution a{color:#0E3550!important;text-decoration:none}
 
+  /* Pin: the Orion mark on a white disc, with a soft halo ring pulsing out. */
   .om-pin{position:relative}
-  .om-pin i{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#C4622D;box-shadow:0 0 0 4px #FDFBF6,0 6px 18px rgba(74,58,40,.34)}
-  .om-pin b{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:1px solid rgba(196,98,45,.8);animation:om-pulse 2.8s cubic-bezier(.22,.61,.24,1) infinite}
-  @keyframes om-pulse{0%{transform:scale(.42);opacity:.9}70%{transform:scale(1.25);opacity:0}100%{opacity:0}}
-  .om-label{position:absolute;left:50%;top:20px;transform:translateX(-50%);white-space:nowrap;background:#0E3550;color:#FDFBF6;padding:7px 12px;font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(74,58,40,.26)}
+  .om-pin .om-disc{
+    position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;
+    border-radius:50%;background:#FFFFFF;
+    box-shadow:0 2px 6px rgba(14,53,80,.18),0 12px 30px rgba(14,53,80,.24);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .om-pin .om-disc img{width:40px;height:auto;display:block}
+  /* Stem connecting the disc to the exact coordinate. */
+  .om-pin .om-stem{
+    position:absolute;left:50%;top:50%;width:1px;height:18px;margin:19px 0 0 -.5px;
+    background:linear-gradient(180deg,rgba(14,53,80,.55),rgba(14,53,80,0));
+  }
+  .om-pin .om-dot{
+    position:absolute;left:50%;top:50%;width:7px;height:7px;margin:33px 0 0 -3.5px;
+    border-radius:50%;background:#0E3550;
+  }
+  .om-pin .om-halo{
+    position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;
+    border-radius:50%;border:1px solid rgba(239,169,43,.85);
+    animation:om-pulse 3.2s cubic-bezier(.22,.61,.24,1) infinite;
+  }
+  @keyframes om-pulse{0%{transform:scale(.8);opacity:.85}70%{transform:scale(1.85);opacity:0}100%{opacity:0}}
+
+  .om-label{
+    position:absolute;left:50%;top:44px;transform:translateX(-50%);white-space:nowrap;
+    background:#0E3550;color:#FAF7F0;padding:8px 16px;border-radius:999px;
+    font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+    box-shadow:0 8px 24px rgba(14,53,80,.28);
+  }
 
   .om-ui{position:absolute;z-index:600;display:flex;gap:8px}
   .om-zoom{right:14px;top:14px;flex-direction:column}
-  .om-zoom button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:#FDFBF6;color:#0E3550;border:1px solid rgba(138,122,99,.28);font-size:17px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(74,58,40,.12);transition:background .3s ease,color .3s ease}
-  .om-zoom button:hover{background:#0E3550;color:#FDFBF6}
+  .om-zoom button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.94);color:#0E3550;border:1px solid rgba(199,220,228,.9);border-radius:50%;font-size:17px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(14,53,80,.1);transition:background .3s ease,color .3s ease}
+  .om-zoom button:hover{background:#0E3550;color:#FAF7F0;border-color:#0E3550}
 
-  .om-veil{position:absolute;inset:0;z-index:590;display:flex;align-items:center;justify-content:center;background:rgba(196,98,45,.05);cursor:pointer;transition:opacity .5s ease}
-  .om-veil span{background:rgba(253,251,246,.94);color:#0E3550;padding:12px 20px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(74,58,40,.16)}
+  .om-veil{position:absolute;inset:0;z-index:590;display:flex;align-items:center;justify-content:center;background:rgba(14,53,80,.04);cursor:pointer;transition:opacity .5s ease}
+  .om-veil span{background:rgba(255,255,255,.95);color:#0E3550;padding:13px 22px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(14,53,80,.14)}
   .om-veil.off{opacity:0;pointer-events:none}
 </style>
 </head>
@@ -65,20 +94,24 @@
     return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
   }
 
-  // Mediterranean palette: aegean water, limestone land, olive greenery, terracotta warmth.
+  // Restrained Aegean palette. Everything is pulled toward low saturation and
+  // high lightness so the map reads as a quiet backdrop; the amber pin is then
+  // the only saturated element and needs no extra emphasis.
   function recolor(data) {
     for (var i = 0; i < data.length; i += 4) {
       if (data[i + 3] === 0) continue;
       var hsl = rgb2hsl(data[i], data[i + 1], data[i + 2]);
       var h = hsl[0], s = hsl[1], l = hsl[2], out;
-      if (s > 0.07 && h >= 168 && h <= 248) {           // water
-        out = hsl2rgb(193, 0.44, Math.min(0.78, 0.30 + l * 0.44));
-      } else if (s > 0.06 && h >= 62 && h < 168) {       // parks, trees
-        out = hsl2rgb(74, 0.26, Math.min(0.86, l * 0.98));
-      } else if (l > 0.9) {                              // paper, road fill
-        out = hsl2rgb(38, 0.30, Math.min(0.965, l * 0.985));
-      } else {                                           // buildings, roads, labels
-        out = hsl2rgb(l > 0.45 ? 30 : 26, Math.min(0.26, s * 0.5 + 0.10), l);
+      if (s > 0.07 && h >= 168 && h <= 248) {           // sea: deep, desaturated Aegean
+        out = hsl2rgb(201, 0.32, Math.min(0.72, 0.34 + l * 0.36));
+      } else if (s > 0.06 && h >= 62 && h < 168) {       // parks, trees: sage
+        out = hsl2rgb(88, 0.16, Math.min(0.87, 0.62 + l * 0.26));
+      } else if (l > 0.9) {                              // paper, road fill: warm bone
+        out = hsl2rgb(42, 0.20, Math.min(0.972, 0.90 + l * 0.08));
+      } else if (l > 0.55) {                             // building fills: soft stone
+        out = hsl2rgb(38, 0.12, Math.min(0.93, l * 1.06));
+      } else {                                           // roads, labels: muted slate
+        out = hsl2rgb(210, Math.min(0.16, s * 0.35 + 0.06), Math.min(0.62, l * 1.18 + 0.06));
       }
       data[i] = out[0]; data[i + 1] = out[1]; data[i + 2] = out[2];
     }
@@ -117,7 +150,14 @@
   new Med({ maxZoom: 19, attribution: ATTR, updateWhenIdle: false }).addTo(map);
 
   L.marker(ORION, {
-    icon: L.divIcon({ className: 'om-pin', html: '<b></b><i></i><div class="om-label">Orion Ouzeri</div>', iconSize: [0, 0] }),
+    icon: L.divIcon({
+      className: 'om-pin',
+      html: '<span class="om-halo"></span>' +
+            '<span class="om-stem"></span><span class="om-dot"></span>' +
+            '<span class="om-disc"><img src="assets/orion-logo.png" alt="Orion Ouzeri"></span>' +
+            '<div class="om-label">Orion Ouzeri</div>',
+      iconSize: [0, 0]
+    }),
     keyboard: false, title: 'Orion Ouzeri — Kallergi 8'
   }).addTo(map);
 
