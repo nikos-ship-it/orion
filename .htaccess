@@ -1,12 +1,31 @@
-# Apache / LiteSpeed config (top.host, cPanel, DirectAdmin).
-# Netlify and Cloudflare Pages ignore this file — they read _headers instead.
-#
-# IMPORTANT: an .htaccess in the document root also applies to every
-# subdirectory beneath it. If a subdomain's document root lives inside this
-# folder (e.g. public_html/menu/), these rules will apply to it too. Check the
-# subdomain's document root in your hosting panel before deploying.
+# Apache config. Plesk usually runs nginx in front of Apache — if "Smart static
+# files processing" is on, nginx serves static files itself and NEVER reads this
+# file. See plesk-nginx.conf for the equivalent rules to paste into
+# Plesk → Apache & nginx Settings → Additional nginx directives.
+
+# This deploys into /orionouzeri.gr, which still holds the old WordPress install.
+# Plesk's git deploy writes repo files but does not delete untracked ones, so
+# WordPress's index.php survives the deploy and would otherwise be served ahead
+# of our index.html. Pin the order explicitly.
+DirectoryIndex index.html
 
 ErrorDocument 404 /404.html
+
+# ── Don't serve leftovers ─────────────────────────────────────────
+# If PHP is ever disabled for this domain, .php files get served as PLAIN TEXT
+# and wp-config.php would leak the database credentials. Deleting the old
+# WordPress files is the real fix; this is a safety net until then.
+<FilesMatch "^(wp-config\.php|wp-config-sample\.php|readme\.html|license\.txt)$">
+  Require all denied
+</FilesMatch>
+
+# README.md ships with the site but is not for visitors.
+<FilesMatch "\.(md|yml|yaml)$">
+  Require all denied
+</FilesMatch>
+
+# Never expose a repository directory if one ends up in the docroot.
+RedirectMatch 404 /\.git
 
 # ── Compression ──────────────────────────────────────────────────
 <IfModule mod_deflate.c>
@@ -52,10 +71,10 @@ ErrorDocument 404 /404.html
 </IfModule>
 
 # ── HTTPS and www canonicalisation ───────────────────────────────
-# Left commented on purpose: most hosts (including cPanel with AutoSSL) already
-# force HTTPS at a layer above this, and doubling it up behind a proxy is the
-# classic cause of redirect loops. Enable ONE of these only after confirming
-# your host is not already redirecting.
+# Left commented on purpose: Plesk handles both under Hosting Settings
+# ("Permanent SEO-safe 301 redirect from HTTP to HTTPS"), and doubling it up
+# behind the nginx proxy is the classic cause of redirect loops. Prefer the
+# Plesk checkbox over these rules.
 #
 # <IfModule mod_rewrite.c>
 #   RewriteEngine On

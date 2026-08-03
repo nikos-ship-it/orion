@@ -18,45 +18,80 @@ map.html          the Visit-section map, embedded as an iframe
 robots.txt        crawl rules + sitemap pointer
 sitemap.xml       one URL
 site.webmanifest  icons, theme colour
-.htaccess         Apache/LiteSpeed config (top.host, cPanel) — compression,
-                  caching, security headers, 404
+.htaccess         Apache rules — DirectoryIndex, caching, security headers, 404
+plesk-nginx.conf  the same rules for Plesk's "Additional nginx directives"
 _headers          the same rules for Netlify / Cloudflare Pages
 assets/           photography, hero video, logos, favicons, OG image
-design-source/    the Claude Design handoff bundle this was built from
 ```
 
-Only one of `.htaccess` / `_headers` is read, depending on the host. Leaving
-both in place is harmless.
+**`main` contains only what should be publicly served.** Plesk's git deployment
+copies the whole branch into the document root and has no exclude mechanism, so
+anything committed here becomes reachable over HTTP.
 
-`design-source/` is provenance, not part of the deployed site: the original
-`.dc.html` prototype, its components, and the two chat transcripts that record
-the design decisions. Nothing in the site references it.
+The Claude Design handoff bundle — the `.dc.html` prototype, its components and
+the two chat transcripts — lives on the **`design-source` branch** for exactly
+that reason. On `main` it would have been published at
+`orionouzeri.gr/design-source/chats/chat1.md`.
+
+Only one of `.htaccess` / `plesk-nginx.conf` / `_headers` applies, depending on
+what serves the files. Leaving all three in place is harmless.
 
 ## Deploying
 
-`.github/workflows/deploy.yml` uploads the site to top.host over FTPS. It is
-**manual only** (Actions → *Deploy to top.host* → *Run workflow*) until you
-uncomment the push trigger.
+Deployment uses **Plesk's built-in Git integration**, which pulls this
+repository directly. No FTP credentials and no GitHub Actions workflow are
+involved.
 
-Add these repository secrets first (Settings → Secrets and variables → Actions):
+Plesk settings:
 
-| Secret | Value |
+| Field | Value |
 | --- | --- |
-| `FTP_SERVER` | FTP hostname from top.host, e.g. `ftp.orionouzeri.gr` |
-| `FTP_USERNAME` | FTP user |
-| `FTP_PASSWORD` | FTP password |
-| `FTP_SERVER_DIR` | Optional. Defaults to `/public_html/`. Trailing slash required. |
+| Repository URL | `https://github.com/nikos-ship-it/orion` |
+| Branch | `main` |
+| Server path | `/orionouzeri.gr` |
+| Deployment mode | `Manual` for the first run, then `Automatic` |
+| Additional deployment actions | leave empty — this is a static site with no build step |
 
-The deploy is **incremental and non-destructive**: `dangerous-clean-slate` is
-`false`, so it only removes files it uploaded on an earlier run and never touches
-files it has not seen. Pre-existing WordPress files and anything belonging to a
-subdomain stay put. `design-source/` and `README.md` are excluded; `.htaccess`
-is not, because production needs it.
+`/orionouzeri.gr` is the document root itself (it is where the WordPress install
+lives), not a parent of it, so no `httpdocs` suffix is needed.
 
-Because old WordPress files are left in place, `wp-admin` and friends remain
-reachable after launch. Remove them manually once you are happy with the new
-site — an unmaintained WordPress install is worth deleting rather than leaving
-dormant.
+**The `menu.orionouzeri.gr` subdomain is a sibling directory**, not a child of
+the deployment path. A deploy cannot reach it and `.htaccess` is not inherited
+by it. It is unaffected.
+
+### The old WordPress install shares the directory
+
+Plesk's git deploy writes the repository's files and leaves untracked files
+alone, so the old WordPress install survives the deploy in the same directory.
+Two consequences:
+
+1. **`index.php` would be served instead of `index.html`** under most
+   DirectoryIndex orders. `.htaccess` and `plesk-nginx.conf` both pin
+   `index.html` first, but deleting the WordPress files is the durable fix.
+2. **If PHP handling is ever removed for this domain, `.php` files get served as
+   plain text and `wp-config.php` leaks the database credentials.** Both config
+   files deny that file explicitly as a safety net — it is not a substitute for
+   deleting it.
+
+Once the new site is confirmed working, delete from `/orionouzeri.gr`:
+`wp-admin/`, `wp-includes/`, `wp-content/`, `index.php`, `wp-config.php`,
+`wp-config-sample.php`, `wp-*.php`, `license.txt`, `readme.html`,
+`.well-known/` may stay (it is used for certificate validation). Back the
+directory up first — the Elementor content and media library exist nowhere else.
+
+### nginx vs Apache
+
+Plesk normally fronts Apache with nginx. If **"Smart static files processing"**
+is enabled, nginx serves static files itself and **never reads `.htaccess`** —
+the caching and security rules there silently do nothing. Paste
+`plesk-nginx.conf` into Websites & Domains → orionouzeri.gr → Apache & nginx
+Settings → *Additional nginx directives* to get the same behaviour. Adding it is
+harmless either way.
+
+Force HTTPS with Plesk's own *Permanent SEO-safe 301 redirect from HTTP to
+HTTPS* checkbox under Hosting Settings, not with rewrite rules — stacking both
+behind the nginx proxy is the usual cause of redirect loops. The rules are
+included but commented out in `.htaccess` for that reason.
 
 ## Local preview
 
@@ -160,12 +195,12 @@ JSON-LD `openingHoursSpecification`. Update both if the hours change.
 - **Back up the old site first** — files *and* database. The Elementor page
   content and the `wp-content/uploads/` media library only exist there, and this
   site reuses none of it.
-- **Check where subdomains point.** If a subdomain's document root sits inside
-  the folder you deploy into, a deploy that deletes-then-writes can remove it,
-  and the `.htaccess` here would also apply to it. Confirm the document root of
-  `menu.orionouzeri.gr` in the hosting panel before the first deploy.
-- **Keep `menu.orionouzeri.gr` working** — the hero CTA, the nav, the footer and
-  the JSON-LD `hasMenu` all point at it.
+- **`menu.orionouzeri.gr` is safe** — confirmed a sibling directory of
+  `/orionouzeri.gr` in the Plesk file manager, so the deploy cannot touch it and
+  `.htaccess` is not inherited by it. It must keep working regardless: the hero
+  CTA, the nav, the footer and the JSON-LD `hasMenu` all point at it.
+- **Check `index.html` is what gets served**, not the leftover WordPress
+  `index.php`. Load the site in a private window straight after deploying.
 - **Redirect stale WordPress URLs to `/`** once traffic moves, so any indexed
   `/feed/`, `/wp-json/` or attachment pages don't turn into 404s.
 
