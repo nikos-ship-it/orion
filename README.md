@@ -32,6 +32,32 @@ both in place is harmless.
 `.dc.html` prototype, its components, and the two chat transcripts that record
 the design decisions. Nothing in the site references it.
 
+## Deploying
+
+`.github/workflows/deploy.yml` uploads the site to top.host over FTPS. It is
+**manual only** (Actions → *Deploy to top.host* → *Run workflow*) until you
+uncomment the push trigger.
+
+Add these repository secrets first (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+| --- | --- |
+| `FTP_SERVER` | FTP hostname from top.host, e.g. `ftp.orionouzeri.gr` |
+| `FTP_USERNAME` | FTP user |
+| `FTP_PASSWORD` | FTP password |
+| `FTP_SERVER_DIR` | Optional. Defaults to `/public_html/`. Trailing slash required. |
+
+The deploy is **incremental and non-destructive**: `dangerous-clean-slate` is
+`false`, so it only removes files it uploaded on an earlier run and never touches
+files it has not seen. Pre-existing WordPress files and anything belonging to a
+subdomain stay put. `design-source/` and `README.md` are excluded; `.htaccess`
+is not, because production needs it.
+
+Because old WordPress files are left in place, `wp-admin` and friends remain
+reachable after launch. Remove them manually once you are happy with the new
+site — an unmaintained WordPress install is worth deleting rather than leaving
+dormant.
+
 ## Local preview
 
 ```sh
@@ -107,10 +133,20 @@ JSON-LD `openingHoursSpecification`. Update both if the hours change.
    it appears in the JSON-LD `sameAs` but has no visible footer link, since the
    approved design specified only Instagram, Menu, Directions and Call. Say if
    you want it added.
-3. **Hero video is 16 MB.** It is faststart-ordered so playback begins before
-   the full download completes, but it should still be compressed and given a
-   WebM sibling source. It is video-only (no audio track), 
-   H.264/MP4, and plays muted on loop.
+3. ~~**Hero video is 16 MB.**~~ **Done** — re-encoded to **2.36 MB** (was 15.3 MB,
+   an 85% cut) at unchanged 1280×720 and 50 fps, H.264 `crf 28 -preset slow`,
+   faststart, no audio track.
+
+   Two findings worth keeping if it is ever re-encoded:
+
+   - **Do not halve the frame rate.** The clip is a slow dolly move, so every
+     frame carries motion. At 25 fps, SSIM against the source plateaus at ~0.87
+     no matter the bitrate; at 50 fps `crf 28` scores **0.970 in a smaller
+     file**. Dropping frames cost quality *and* bytes.
+   - **WebM/VP9 is not worth shipping for this clip.** Matched to the same
+     quality (SSIM ≈ 0.970), VP9 came out at 2.62 MB versus H.264's 2.36 MB —
+     larger, plus a second file to maintain and no help for Safari. The design
+     brief suggested a WebM source; the measurement says skip it here.
 4. **Photography is ~1200 px on the long edge.** The design called for roughly
    2× the display size. Higher-resolution originals can be dropped into
    `assets/` under the same filenames with no code changes.
