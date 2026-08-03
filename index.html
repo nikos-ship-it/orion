@@ -36,6 +36,18 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
 
+<!-- Critical preloader rules, inline on purpose. The preloader is the first
+     element in <body>, so if styles.css is slow it would otherwise paint as an
+     unstyled logo and black "Welcome to Orion Ouzeri" on white, shifting the
+     page. These few properties guarantee it is a full-bleed Deep Aegean panel
+     from the first paint. -->
+<style>
+  .preloader{position:fixed;inset:0;z-index:100;background:#0E3550;
+    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .preloader img{width:104px;height:auto}
+  .preloader p,.preloader span{color:#FAF7F0;font-family:'Cormorant Garamond',Georgia,serif;text-align:center}
+</style>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -63,6 +75,12 @@
     "postalCode": "700 14",
     "addressCountry": "GR"
   },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 35.31042466,
+    "longitude": 25.40176382
+  },
+  "hasMap": "https://www.google.com/maps/search/?api=1&query=35.31042466,25.40176382",
   "openingHoursSpecification": [{
     "@type": "OpeningHoursSpecification",
     "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
@@ -193,8 +211,8 @@
   </section>
 
   <section class="film" id="experience">
-    <figure class="film__figure" data-reveal>
-      <div class="frame film__frame">
+    <figure class="film__figure">
+      <div class="frame film__frame" data-reveal>
         <img src="assets/film.webp" alt="A table set with meze, a carafe of wine and glasses in low evening sun, the sea beyond" loading="lazy" decoding="async">
       </div>
       <figcaption class="film__caption" data-reveal>The rhythm of a Cretan evening.</figcaption>
@@ -275,7 +293,7 @@
         <p class="visit__services">Outdoor seating · Live music · Wi&#8209;Fi</p>
 
         <div class="visit__actions">
-          <a class="btn-ghost" href="https://www.google.com/maps/search/?api=1&amp;query=Orion+Ouzeri+Kallergi+8+Chersonisos+Crete+700+14" target="_blank" rel="noopener">Get Directions</a>
+          <a class="btn-ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=35.31042466%2C25.40176382" target="_blank" rel="noopener">Get Directions</a>
           <a class="link-underline" href="tel:+302897025030">Call Us</a>
           <a class="visit__menu-link" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Menu</a>
         </div>
@@ -299,7 +317,7 @@
     <nav class="site-footer__nav" aria-label="Footer">
       <a href="https://www.instagram.com/orion_ouzeri/" target="_blank" rel="noopener">Instagram</a>
       <a href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Menu</a>
-      <a href="https://www.google.com/maps/search/?api=1&amp;query=Orion+Ouzeri+Kallergi+8+Chersonisos+Crete+700+14" target="_blank" rel="noopener">Directions</a>
+      <a href="https://www.google.com/maps/dir/?api=1&amp;destination=35.31042466%2C25.40176382" target="_blank" rel="noopener">Directions</a>
       <a href="tel:+302897025030">Call</a>
     </nav>
 

@@ -68,6 +68,8 @@
       if (dismissed) return;
       dismissed = true;
       preloader.classList.add('is-done');
+      // Hand off to the hero entrance as the curtain lifts.
+      document.body.classList.add('hero-in');
       // Drop it from the tree once faded so it can never trap focus or clicks.
       setTimeout(function () { preloader.remove(); }, 1000);
     };
@@ -85,6 +87,63 @@
     // Hard ceiling: a stalled or failed asset must not leave the page hidden.
     setTimeout(dismiss, 2500);
   }
+
+  /* ── Slow eased anchor scrolling ──────────────────────────────── */
+
+  /* CSS scroll-behavior:smooth is left in place as the no-JS fallback, but its
+     duration is fixed and short. This glides over ~1.5s with an ease that
+     settles rather than stops. Only anchor clicks are intercepted — the wheel
+     is never touched, so there is no scroll-jacking. */
+  var SCROLL_MS = 1500;
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function glideTo(targetY, done) {
+    var startY = window.scrollY;
+    var delta = targetY - startY;
+    if (Math.abs(delta) < 2) { if (done) done(); return; }
+    var root = document.documentElement;
+    // Native smooth scrolling would fight these per-frame jumps.
+    var previous = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    var t0 = null;
+    function step(now) {
+      if (t0 === null) t0 = now;
+      var t = Math.min(1, (now - t0) / SCROLL_MS);
+      window.scrollTo(0, startY + delta * easeInOutCubic(t));
+      if (t < 1) { requestAnimationFrame(step); return; }
+      root.style.scrollBehavior = previous;
+      if (done) done();
+    }
+    requestAnimationFrame(step);
+  }
+
+  function headerOffset() {
+    var v = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
+    return parseFloat(v) || 0;
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var hash = a.getAttribute('href');
+    if (!hash || hash === '#') return;
+    var target = document.querySelector(hash);
+    if (!target) return;
+    // The mobile panel closes itself and restores focus; let it run first.
+    if (a.closest('.nav-mobile')) return;
+    e.preventDefault();
+    if (reduceMotion) {
+      target.scrollIntoView();
+      history.pushState(null, '', hash);
+      return;
+    }
+    var y = window.scrollY + target.getBoundingClientRect().top - headerOffset();
+    glideTo(Math.max(0, y), function () { history.pushState(null, '', hash); });
+  });
 
   /* ── Active section in the nav ────────────────────────────────── */
 
@@ -118,7 +177,27 @@
     var hidden = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'))
       .filter(function (el) { return el.getBoundingClientRect().top > window.innerHeight * 0.88; });
 
-    hidden.forEach(function (el) { el.classList.add('reveal'); });
+    // Picture blocks get the clip wipe; text blocks get the rise-and-fade.
+    // Never clip a block that contains its own [data-reveal] child: a clipped
+    // ancestor has no visible area, so IntersectionObserver never fires for
+    // anything inside it and the child would stay invisible forever.
+    hidden.forEach(function (el) {
+      var isPicture = el.classList.contains('frame') ||
+                      el.classList.contains('story__figure') ||
+                      !!el.querySelector('.frame, .zoom, img');
+      var wrapsAReveal = !!el.querySelector('[data-reveal]');
+      el.classList.add(isPicture && !wrapsAReveal ? 'reveal-clip' : 'reveal');
+    });
+
+    // Siblings revealed together stagger rather than arriving as one block.
+    var groups = new Map();
+    hidden.forEach(function (el) {
+      var parent = el.parentElement;
+      if (!groups.has(parent)) groups.set(parent, 0);
+      var i = groups.get(parent);
+      if (i > 0) el.style.transitionDelay = Math.min(i * 0.12, 0.48) + 's';
+      groups.set(parent, i + 1);
+    });
 
     var fired = false;
     var io = new IntersectionObserver(function (entries) {
