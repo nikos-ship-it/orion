@@ -57,9 +57,6 @@
   .om-zoom button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.94);color:#0E3550;border:1px solid rgba(199,220,228,.9);border-radius:50%;font-size:17px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(14,53,80,.1);transition:background .3s ease,color .3s ease}
   .om-zoom button:hover{background:#0E3550;color:#FAF7F0;border-color:#0E3550}
 
-  .om-veil{position:absolute;inset:0;z-index:590;display:flex;align-items:center;justify-content:center;background:rgba(14,53,80,.04);cursor:pointer;transition:opacity .5s ease}
-  .om-veil span{background:rgba(255,255,255,.95);color:#0E3550;padding:13px 22px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(14,53,80,.14)}
-  .om-veil.off{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -68,7 +65,6 @@
   <button type="button" id="zin" aria-label="Zoom in">+</button>
   <button type="button" id="zout" aria-label="Zoom out">–</button>
 </div>
-<div class="om-veil" id="veil"><span>Click to explore the map</span></div>
 <script>
   var ORION = [35.31042466, 25.40176382];  // confirmed: Plus Code 8C62+5P Hersonissos
   var TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -164,9 +160,9 @@
   document.getElementById('zin').onclick = function () { map.zoomIn(); };
   document.getElementById('zout').onclick = function () { map.zoomOut(); };
 
-  var veil = document.getElementById('veil');
-  veil.addEventListener('click', function () { veil.classList.add('off'); map.scrollWheelZoom.enable(); });
-  map.on('mouseout', function () { map.scrollWheelZoom.disable(); veil.classList.remove('off'); });
+  // scrollWheelZoom stays false for the life of the map: the page must keep
+  // scrolling when the pointer crosses it. Dragging to pan and the +/- buttons
+  // are the ways to move around, so nothing needs an unlock step.
 
   function recenter() { map.setView(ORION, map.getZoom(), { animate: false }); }
   window.addEventListener('resize', function () { map.invalidateSize(); recenter(); });
