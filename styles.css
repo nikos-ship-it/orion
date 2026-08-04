@@ -464,6 +464,12 @@ img { max-width: 100%; }
 }
 .row__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* The sunset photograph is a 3:4 portrait in a landscape box, so a third of its
+   height is cropped. Centred, the crop ate the pink dusk sky — the one thing the
+   row is about. Bias it upward to keep the sky and the sea, at the cost of the
+   nearest plates. */
+.row__media--high img { object-position: 50% 15%; }
+
 .row__text { max-width: 52ch; }
 
 .row__title {
