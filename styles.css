@@ -18,7 +18,7 @@
   --sans: Jost, 'Helvetica Neue', Helvetica, sans-serif;
 
   --gutter: clamp(20px, 5vw, 88px);
-  --shell: 1440px;
+  --shell: min(1880px, 93vw);
   --ease: cubic-bezier(.22, .61, .24, 1);
   --radius-pill: 999px;
 
@@ -160,9 +160,8 @@ img { max-width: 100%; }
   object-fit: cover;
   display: block;
 }
-.frame--16x9 { aspect-ratio: 16 / 9; min-height: 220px; }
-.frame--4x3 { aspect-ratio: 4 / 3; min-height: 240px; }
-.frame--3x4 { aspect-ratio: 3 / 4; min-height: 280px; }
+.frame--wide { height: clamp(44vh, 62vh, 80vh); }
+.frame--tall { height: clamp(52vh, 78vh, 96vh); }
 
 /* Slow image scale on hover, shared by every editorial frame. */
 .zoom { position: absolute; inset: 0; transition: transform 1.4s var(--ease); }
@@ -449,137 +448,69 @@ img { max-width: 100%; }
   color: var(--ink);
 }
 
-/* ── 03 Large image story ─────────────────────────────────────── */
+/* ── Alternating image/text rows ("chess") ────────────────────── */
 
-.story {
-  padding: clamp(48px, 8vh, 96px) 0 clamp(96px, 16vh, 180px);
+/* Media is sized in viewport height, not pixels, so the picture grows with the
+   screen instead of stalling at a fixed max-width. That was the reason the
+   images looked small on a 2560px display. */
+.rows {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: clamp(32px, 4vw, 72px);
+  flex-direction: column;
+  gap: clamp(72px, 12vh, 190px);
+  padding: clamp(64px, 10vh, 150px) var(--gutter) clamp(96px, 16vh, 200px);
 }
 
-.story__figure {
-  flex: 1 1 min(100%, 560px);
+.row {
+  max-width: var(--shell);
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(32px, 5vw, 104px);
+  align-items: center;
+}
+
+/* Every other row swaps sides. Only the visual order changes — the picture
+   stays first in the DOM, so reading order and focus order are unaffected. */
+.row--flip .row__media { order: 2; }
+
+.row__media {
   position: relative;
-  aspect-ratio: 4 / 3;
-  min-height: 260px;
+  height: clamp(46vh, 66vh, 82vh);
   overflow: hidden;
   background: var(--salt);
-  color: var(--aegean);
 }
+.row__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* Overscans the frame so the parallax shift never exposes an edge. */
-.story__parallax {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -6%;
-  height: 112%;
-  transition: transform .18s linear;
-}
-.story__parallax img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 86.7%;
-  display: block;
-}
+.row__text { max-width: 52ch; }
 
-.story__text {
-  flex: 0 1 340px;
-  padding: 0 var(--gutter) clamp(8px, 2vw, 24px) 0;
-  margin-left: var(--gutter);
-}
-
-.story__title {
-  margin-top: clamp(16px, 2vw, 24px);
+.row__title {
+  margin-top: clamp(18px, 2.2vw, 30px);
   font-family: var(--serif);
   font-weight: 400;
-  font-size: clamp(38px, 4.6vw, 64px);
-  line-height: 1.08;
-  letter-spacing: -.01em;
+  font-size: clamp(38px, 4.6vw, 76px);
+  line-height: 1.06;
+  letter-spacing: -.015em;
   color: var(--aegean);
+  text-wrap: balance;
 }
 
-.story__copy {
-  margin-top: clamp(18px, 2.4vw, 28px);
-  max-width: 340px;
+.row__copy {
+  margin-top: clamp(20px, 2.4vw, 30px);
   font-size: 19px;
-  line-height: 1.68;
+  line-height: 1.72;
   color: var(--ink);
 }
 
-/* ── 04 Centrepiece image ─────────────────────────────────────── */
-
-.film { padding: clamp(24px, 5vh, 64px) clamp(20px, 3.2vw, 52px) clamp(104px, 18vh, 200px); }
-
-.film__figure { max-width: 1600px; margin: 0 auto; }
-
-.film__frame {
-  aspect-ratio: 2.1 / 1;
-  min-height: 240px;
-  background: var(--aegean);
-  color: var(--salt);
-}
-
-.film__caption {
-  margin-top: clamp(30px, 4.4vw, 56px);
-  text-align: center;
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(29px, 3.7vw, 50px);
-  line-height: 1.14;
-  letter-spacing: -.01em;
-  color: var(--aegean);
-}
-
-/* ── 05 The Orion Ritual ──────────────────────────────────────── */
-
-.ritual { padding: 0 var(--gutter) clamp(104px, 18vh, 200px); }
-
-.ritual__grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(36px, 6vw, 120px);
-}
-
-.ritual__lead { flex: 1 1 min(100%, 420px); }
-
-.ritual__title {
-  margin-top: clamp(20px, 2.6vw, 32px);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(48px, 7.2vw, 96px);
-  line-height: 1.02;
-  letter-spacing: -.02em;
-  color: var(--aegean);
-}
-
-.ritual__plates {
-  margin-top: clamp(40px, 5.5vw, 72px);
-  max-width: 440px;
-  aspect-ratio: 3 / 4;
-}
-
-.ritual__aside {
-  flex: 1 1 min(100%, 380px);
-  max-width: 520px;
-  margin-top: clamp(0px, 5vw, 88px);
-}
-
-.ritual__copy {
-  font-size: 19px;
-  line-height: 1.7;
-  color: var(--ink);
-  max-width: 400px;
-}
-.ritual__copy + .ritual__copy { margin-top: 26px; }
-
-.ritual__image {
-  margin-top: clamp(36px, 5vw, 64px);
-  aspect-ratio: 5 / 4;
-  min-height: 220px;
+@media (max-width: 880px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: clamp(26px, 5vw, 40px);
+  }
+  /* Stacked, the picture must lead every row regardless of flip. */
+  .row--flip .row__media { order: 0; }
+  .row__media { height: clamp(42vh, 54vh, 62vh); }
+  .row__text { max-width: none; }
 }
 
 /* ── 06 Editorial gallery ─────────────────────────────────────── */
@@ -626,6 +557,14 @@ img { max-width: 100%; }
   line-height: 1.05;
   letter-spacing: -.015em;
   color: var(--aegean);
+}
+
+.visit__lede {
+  margin-top: clamp(22px, 2.6vw, 32px);
+  max-width: 48ch;
+  font-size: 19px;
+  line-height: 1.72;
+  color: var(--ink);
 }
 
 .visit__details {
@@ -704,8 +643,7 @@ img { max-width: 100%; }
 .visit__map-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  min-height: 420px;
+  height: clamp(52vh, 74vh, 88vh);
   overflow: hidden;
   background: #DCE9EE;
 }
@@ -1046,12 +984,9 @@ img { max-width: 100%; }
    320px screens. Below 480px let aspect-ratio govern on its own — there is no
    collapse to guard against once every block is full-width. */
 @media (max-width: 480px) {
-  .frame--16x9,
-  .frame--4x3,
-  .frame--3x4,
-  .film__frame,
-  .story__figure,
-  .ritual__image,
+  .frame--wide,
+  .frame--tall,
+  .row__media,
   .visit__map-frame { min-height: 0; }
 }
 
@@ -1081,7 +1016,6 @@ img { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
-  .story__parallax { transform: none !important; }
   /* Animations are collapsed to ~0s above, so the preloader's opening state
      would stick at opacity 0. Force the resting state instead. */
   .preloader__logo,
