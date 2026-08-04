@@ -38,6 +38,16 @@ what serves the files. Leaving all three in place is harmless.
 
 ## Deploying
 
+> **Bump `?v=N` in `index.html` on every deploy that touches CSS or JS.**
+> There are four: the `styles.css` link, the `script.js` and `consent.js` tags,
+> and the map `<iframe src>`. HTML is served uncached and CSS/JS are cached, so
+> a returning visitor who does not get a new URL pairs the new HTML with an old
+> script. That happened once and the page showed nothing but the preloader on a
+> phone, because the cached script predated the preloader. Two things now guard
+> against it: the CSS-only curtain lift in the inline `<style>` (which means a
+> broken or stale script can no longer hide the page), and a one-day rather than
+> one-month expiry on CSS and JS. The `?v=` bump is still the actual fix.
+
 Deployment uses **Plesk's built-in Git integration**, which pulls this
 repository directly. No FTP credentials and no GitHub Actions workflow are
 involved.

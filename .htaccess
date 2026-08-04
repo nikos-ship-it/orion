@@ -48,8 +48,12 @@ RedirectMatch 404 /\.git
   ExpiresByType image/png "access plus 1 year"
   ExpiresByType image/webp "access plus 1 year"
   ExpiresByType video/mp4 "access plus 1 year"
-  ExpiresByType text/css "access plus 1 month"
-  ExpiresByType application/javascript "access plus 1 month"
+  # One day, not one month. index.html carries ?v=N on every stylesheet and
+  # script, which is what actually busts these — but if a deploy ever ships
+  # without bumping it, a stale copy must expire in a day, not in a month. That
+  # mismatch once left a phone pairing new HTML with a month-old script.js.
+  ExpiresByType text/css "access plus 1 day"
+  ExpiresByType application/javascript "access plus 1 day"
   # HTML stays uncached so edits appear immediately.
   ExpiresByType text/html "access plus 0 seconds"
 </IfModule>

@@ -33,7 +33,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<!-- ?v= on every stylesheet and script, and BUMP IT ON EVERY DEPLOY. CSS and JS
+     are cached (a day now, a month before this was found), the HTML is not, so
+     without a new URL a returning phone pairs new HTML with an old script.js.
+     That is exactly what happened: the cached script had no preloader handling,
+     so the curtain never lifted and the phone showed nothing but the preloader. -->
+<link rel="stylesheet" href="styles.css?v=4">
 <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
 
 <!-- Critical preloader rules, inline on purpose. The preloader is the first
@@ -43,9 +48,22 @@
      from the first paint. -->
 <style>
   .preloader{position:fixed;inset:0;z-index:100;background:#0E3550;
-    display:flex;flex-direction:column;align-items:center;justify-content:center}
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    /* The curtain lifts on its own, in CSS. script.js still dismisses it sooner
+       (as soon as the page is ready), but it must never be the ONLY thing that
+       can: a full-screen overlay that only JavaScript can remove means any
+       failure to run that script — a stale cached copy, a blocked file, an
+       engine that chokes on it — leaves the visitor looking at nothing but this
+       panel. Which is precisely what happened on a phone holding a month-old
+       script.js. This rule is inline, so it survives even if styles.css is the
+       thing that fails. The 2.9s delay sits deliberately behind script.js's own
+       2.5s ceiling, so with a working script this never gets a turn. */
+    animation:pre-lift .7s cubic-bezier(.22,.61,.24,1) 2.9s forwards}
+  @keyframes pre-lift{to{opacity:0;visibility:hidden}}
   .preloader img{width:104px;height:auto}
   .preloader p,.preloader span{color:#FAF7F0;font-family:'Cormorant Garamond',Georgia,serif;text-align:center}
+  /* No delay for anyone who has asked for less motion. */
+  @media (prefers-reduced-motion:reduce){.preloader{animation-delay:0s}}
 </style>
 
 <script type="application/ld+json">
@@ -352,7 +370,7 @@
 
       <div class="visit__map" data-reveal>
         <div class="visit__map-frame">
-          <iframe src="map.html" title="Map of Orion Ouzeri, Kallergi 8, Chersonisos" loading="lazy"></iframe>
+          <iframe src="map.html?v=4" title="Map of Orion Ouzeri, Kallergi 8, Chersonisos" loading="lazy"></iframe>
         </div>
       </div>
     </div>
@@ -404,7 +422,7 @@
   </div>
 </footer>
 
-<script src="script.js" defer></script>
-<script src="consent.js" defer></script>
+<script src="script.js?v=4" defer></script>
+<script src="consent.js?v=4" defer></script>
 </body>
 </html>
