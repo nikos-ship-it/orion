@@ -444,14 +444,17 @@ img { max-width: 100%; }
   margin: 0 auto;
   width: 100%;
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
   gap: clamp(32px, 5vw, 104px);
   align-items: center;
+  /* The picture always takes the wider column, whichever side it is on. */
+  grid-template-columns: 1.15fr 1fr;
 }
+.row--flip { grid-template-columns: 1fr 1.15fr; }
 
-/* Every other row swaps sides. Only the visual order changes — the picture
-   stays first in the DOM, so reading order and focus order are unaffected. */
-.row--flip .row__media { order: 2; }
+/* The text comes first in the DOM. On desktop the picture is pulled to the left
+   on odd rows to build the chess; flipped rows keep the natural order, so the
+   picture sits on the right. */
+.row:not(.row--flip) .row__media { order: -1; }
 
 .row__media {
   position: relative;
@@ -482,26 +485,37 @@ img { max-width: 100%; }
 }
 
 @media (max-width: 880px) {
-  .row {
+  .row,
+  .row--flip {
     grid-template-columns: 1fr;
     gap: clamp(26px, 5vw, 40px);
   }
-  /* Stacked, the picture must lead every row regardless of flip. */
-  .row--flip .row__media { order: 0; }
+  /* Stacked: DOM order already gives text then picture on every row, so the
+     desktop pull-left is cancelled and the rhythm stays uniform down the page. */
+  .row:not(.row--flip) .row__media { order: 0; }
   .row__media { height: clamp(42vh, 54vh, 62vh); }
   .row__text { max-width: none; }
 }
 
 /* ── Gallery carousel ─────────────────────────────────────────── */
 
-/* Native scroll-snap rather than a JS-driven transform track: it keeps touch
-   swiping, momentum and keyboard scrolling for free, and degrades to a plain
-   scrollable strip if the script never runs. */
-.carousel { padding: clamp(8px, 2vh, 24px) 0; }
+/* Filmstrip in the manner of a hotel gallery: every slide is the same WIDTH and
+   takes its height from the photograph's own proportions, all sitting centred on
+   one horizontal axis. Nothing is cropped, and portrait and landscape shots
+   alternate in height, which is what gives the strip its rhythm.
+   Native scroll-snap, so touch swiping and keyboard scrolling come for free and
+   it degrades to a plain scrollable strip if the script never runs. */
+.carousel {
+  position: relative;
+  padding: clamp(8px, 2vh, 24px) 0;
+  --carousel-gap: clamp(16px, 2.6vw, 52px);
+  /* 2.5 slides in view: two full gaps sit between them. */
+  --carousel-slide: calc((100% - 2 * var(--carousel-gap)) / 2.5);
+}
 
 .carousel__head {
   max-width: var(--shell);
-  margin: 0 auto clamp(20px, 2.6vh, 34px);
+  margin: 0 auto clamp(18px, 2.4vh, 30px);
   padding: 0 var(--gutter);
   display: flex;
   align-items: center;
@@ -509,34 +523,15 @@ img { max-width: 100%; }
   gap: 24px;
 }
 
-.carousel__nav { display: flex; gap: 10px; }
-
-.carousel__btn {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--seafoam);
-  border-radius: 50%;
-  background: none;
-  color: var(--aegean);
-  font-family: var(--sans);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background .35s ease, border-color .35s ease, color .35s ease, opacity .35s ease;
-}
-.carousel__btn:hover { background: var(--aegean); border-color: var(--aegean); color: var(--salt); }
-.carousel__btn[disabled] { opacity: .3; cursor: default; }
-.carousel__btn[disabled]:hover { background: none; border-color: var(--seafoam); color: var(--aegean); }
+.carousel__nav { display: flex; gap: 4px; }
 
 .carousel__track {
   max-width: var(--shell);
   margin: 0 auto;
   padding: 0 var(--gutter);
   display: flex;
-  gap: clamp(12px, 1.6vw, 28px);
+  align-items: center;
+  gap: var(--carousel-gap);
   list-style: none;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -546,41 +541,47 @@ img { max-width: 100%; }
   scrollbar-width: none;
 }
 .carousel__track::-webkit-scrollbar { display: none; }
+.carousel__track:focus-visible { outline: 1px solid var(--orion-blue); outline-offset: 8px; }
 
 .carousel__slide {
-  flex: 0 0 100%;
-  scroll-snap-align: center;
-  height: clamp(46vh, 66vh, 82vh);
-  overflow: hidden;
+  flex: 0 0 var(--carousel-slide);
+  /* "start", not "center": slideLeft() below aligns a slide to the track's left
+     content edge, and centre snapping would land somewhere else, leaving the
+     script's idea of the index out of step with what is on screen. */
+  scroll-snap-align: start;
+  height: auto;
+}
+.carousel__slide img {
+  width: 100%;
+  height: auto;
+  display: block;
   background: var(--salt);
 }
-/* A sliver of the next photograph signals that the strip continues. */
-@media (min-width: 881px) {
-  .carousel__slide { flex-basis: 86%; }
-}
-.carousel__slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.carousel__dots {
-  max-width: var(--shell);
-  margin: clamp(18px, 2.4vh, 30px) auto 0;
-  padding: 0 var(--gutter);
+/* Chevrons sit at the outer edges on the centre line, out of the pictures. */
+.carousel__btn {
+  width: 44px;
+  height: 44px;
   display: flex;
-  gap: 10px;
-}
-
-.carousel__dot {
-  width: 30px;
-  height: 2px;
-  padding: 0;
+  align-items: center;
+  justify-content: center;
   border: 0;
-  background: var(--seafoam);
+  background: none;
+  color: var(--aegean);
+  font-family: var(--sans);
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
   cursor: pointer;
-  transition: background .4s ease;
+  opacity: .55;
+  transition: opacity .35s ease;
 }
-.carousel__dot[aria-selected="true"] { background: var(--aegean); }
-/* The bar itself is 2px; give the pointer and finger something real to hit. */
-.carousel__dot { position: relative; }
-.carousel__dot::after { content: ''; position: absolute; inset: -14px -4px; }
+.carousel__btn:hover { opacity: 1; }
+.carousel__btn[disabled] { opacity: .12; cursor: default; }
+/* One photograph per screen on a phone, still uncropped. */
+@media (max-width: 880px) {
+  .carousel { --carousel-slide: 88%; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .carousel__track { scroll-behavior: auto; }

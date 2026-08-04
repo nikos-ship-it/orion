@@ -21,6 +21,10 @@
   window.addEventListener('resize', syncHeaderHeight);
   window.addEventListener('load', syncHeaderHeight);
   var parallaxEls = Array.prototype.slice.call(document.querySelectorAll('[data-parallax]'));
+  // Elements still waiting to be revealed. IntersectionObserver can miss some of
+  // them during a fast fling, and a missed one would stay invisible for good, so
+  // the scroll loop sweeps up anything that has already reached the viewport.
+  var pendingReveals = [];
   var PARALLAX_RANGE = 26;
   var past = null;
 
@@ -37,6 +41,15 @@
       progress.style.transform = 'scaleX(' + Math.min(1, Math.max(0, ratio)).toFixed(4) + ')';
     }
 
+    if (pendingReveals.length) {
+      var limit = window.innerHeight * 0.9;
+      pendingReveals = pendingReveals.filter(function (el) {
+        if (el.getBoundingClientRect().top > limit) return true;
+        el.classList.add('is-shown');
+        return false;
+      });
+    }
+
     if (reduceMotion) return;
     parallaxEls.forEach(function (el) {
       var r = el.parentElement.getBoundingClientRect();
@@ -49,7 +62,14 @@
   }
 
   var ticking = false;
+  var settleTimer = null;
   function onScroll() {
+    // One more pass shortly after scrolling stops. The rAF-throttled frame can
+    // be mid-flight when the last scroll event arrives, and if a straggling
+    // reveal is only caught by the sweep there would be no further event to
+    // trigger it — a fling to the bottom would leave it invisible.
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(frame, 180);
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(function () { ticking = false; frame(); });
@@ -199,22 +219,18 @@
       groups.set(parent, i + 1);
     });
 
-    var fired = false;
+    pendingReveals = hidden.slice();
+
     var io = new IntersectionObserver(function (entries) {
-      fired = true;
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
         en.target.classList.add('is-shown');
+        pendingReveals = pendingReveals.filter(function (el) { return el !== en.target; });
         io.unobserve(en.target);
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
 
     hidden.forEach(function (el) { io.observe(el); });
-
-    setTimeout(function () {
-      if (fired) return;
-      hidden.forEach(function (el) { el.classList.add('is-shown'); });
-    }, 2500);
   }
 
   /* ── Hero video ───────────────────────────────────────────────── */
@@ -243,7 +259,9 @@
     var timer = null;
 
     // Dots are generated from the slide count, so adding a <li> is enough.
-    var dots = slides.map(function (_, i) {
+    // Dots are optional: the markup may omit the container (the strip reads as a
+    // filmstrip and the chevrons carry the interaction).
+    var dots = !dotsBox ? [] : slides.map(function (_, i) {
       var d = document.createElement('button');
       d.type = 'button';
       d.className = 'carousel__dot';
@@ -254,10 +272,21 @@
       return d;
     });
 
-    var step = function () {
-      // Measured, not assumed: slide width is a percentage and the gap is fluid.
-      if (slides.length < 2) return track.clientWidth;
-      return slides[1].getBoundingClientRect().left - slides[0].getBoundingClientRect().left;
+    // Measure against the track's live content edge rather than computing
+    // absolute scroll offsets: the track has fluid padding and scroll-snap
+    // resolves its own rest positions, so an offsetLeft-based sum sat a
+    // padding-width out and the index disagreed with what was on screen.
+    var contentLeft = function () {
+      return track.getBoundingClientRect().left +
+             parseFloat(getComputedStyle(track).paddingLeft || 0);
+    };
+    var nearestIndex = function () {
+      var edge = contentLeft(), best = 0, bestDist = Infinity;
+      for (var i = 0; i < slides.length; i++) {
+        var d = Math.abs(slides[i].getBoundingClientRect().left - edge);
+        if (d < bestDist) { bestDist = d; best = i; }
+      }
+      return best;
     };
 
     // A lazy <img> inside a horizontally scrolled strip never enters the
@@ -273,6 +302,14 @@
       });
     }
 
+    // The ends are a question about scroll position, not about the index: the
+    // last slide can never align to the left edge, so scrollLeft clamps and the
+    // index never reaches slides.length - 1.
+    function atStart() { return track.scrollLeft <= 2; }
+    function atEnd() {
+      return track.scrollLeft >= track.scrollWidth - track.clientWidth - 2;
+    }
+
     function paint() {
       warmNeighbours();
       dots.forEach(function (d, i) { d.setAttribute('aria-selected', String(i === index)); });
@@ -280,13 +317,19 @@
         var dir = Number(a.dataset.dir);
         // Only disable at the ends once the visitor is driving; while autoplay
         // is running it wraps, so nothing is ever a dead end.
-        a.disabled = manual && ((dir < 0 && index === 0) || (dir > 0 && index === slides.length - 1));
+        a.disabled = manual && ((dir < 0 && atStart()) || (dir > 0 && atEnd()));
       });
     }
 
     function goTo(i) {
       index = Math.max(0, Math.min(slides.length - 1, i));
-      track.scrollTo({ left: index * step(), behavior: reduceMotion ? 'auto' : 'smooth' });
+      // Let the browser work out the scroll position: it accounts for padding
+      // and for snap, which hand-rolled arithmetic kept getting wrong.
+      slides[index].scrollIntoView({
+        behavior: reduceMotion ? 'auto' : 'smooth',
+        inline: 'start',
+        block: 'nearest'
+      });
       paint();
     }
 
@@ -308,8 +351,8 @@
     track.addEventListener('scroll', function () {
       clearTimeout(settle);
       settle = setTimeout(function () {
-        var s = step();
-        if (s > 0) { index = Math.round(track.scrollLeft / s); paint(); }
+        index = nearestIndex();
+        paint();
       }, 90);
     }, { passive: true });
 
@@ -320,12 +363,12 @@
       goTo(index + (e.key === 'ArrowRight' ? 1 : -1));
     });
 
-    window.addEventListener('resize', function () { if (!manual) goTo(index); });
+    window.addEventListener('resize', function () { index = nearestIndex(); paint(); });
 
     if (!reduceMotion) {
       var tick = function () {
         if (manual) return;
-        goTo(index >= slides.length - 1 ? 0 : index + 1);
+        goTo(atEnd() ? 0 : index + 1);
       };
       var startAuto = function () {
         if (manual || timer) return;
@@ -344,6 +387,21 @@
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) pauseAuto(); else startAuto();
       });
+    }
+
+    // Whether a slide gets loaded should not depend on how long someone lingers
+    // or on where autoplay happens to have reached. Once the strip is on screen,
+    // commit to fetching all of it.
+    if ('IntersectionObserver' in window) {
+      var warmAll = new IntersectionObserver(function (entries, obs) {
+        if (!entries.some(function (en) { return en.isIntersecting; })) return;
+        slides.forEach(function (s) {
+          var img = s.querySelector('img');
+          if (img && img.loading === 'lazy') img.loading = 'eager';
+        });
+        obs.disconnect();
+      }, { rootMargin: '200px 0px' });
+      warmAll.observe(track);
     }
 
     paint();
