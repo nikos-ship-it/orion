@@ -323,13 +323,14 @@
 
     function goTo(i) {
       index = Math.max(0, Math.min(slides.length - 1, i));
-      // Let the browser work out the scroll position: it accounts for padding
-      // and for snap, which hand-rolled arithmetic kept getting wrong.
-      slides[index].scrollIntoView({
-        behavior: reduceMotion ? 'auto' : 'smooth',
-        inline: 'start',
-        block: 'nearest'
-      });
+      // scrollBy with a delta measured from where things currently are. This is
+      // deliberately NOT scrollIntoView: that scrolls whatever ancestor it must
+      // to reveal the element, so a slide taller than the viewport dragged the
+      // whole PAGE down to the gallery every time autoplay advanced. scrollBy
+      // touches only this track, and a relative delta needs no absolute-offset
+      // arithmetic, which is what was a padding-width out before.
+      var delta = slides[index].getBoundingClientRect().left - contentLeft();
+      track.scrollBy({ left: delta, behavior: reduceMotion ? 'auto' : 'smooth' });
       paint();
     }
 
@@ -376,7 +377,17 @@
       };
       var pauseAuto = function () { if (timer) { clearInterval(timer); timer = null; } };
 
-      startAuto();
+      // Only run while the strip is actually on screen.
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) startAuto(); else pauseAuto();
+          });
+        }, { threshold: 0.25 }).observe(track);
+      } else {
+        startAuto();
+      }
+
       // Pause while someone is looking at or touching it, and while the tab is
       // in the background — an unseen carousel should not keep advancing.
       track.addEventListener('mouseenter', pauseAuto);
