@@ -196,6 +196,34 @@
       </div>
     </section>
 
+    <section class="carousel" id="gallery" data-reveal
+             aria-roledescription="carousel" aria-label="Orion Ouzeri photographs">
+      <div class="carousel__head">
+        <p class="eyebrow">Gallery</p>
+        <div class="carousel__nav">
+          <button class="carousel__btn" type="button" data-dir="-1" aria-label="Previous photograph">&#8249;</button>
+          <button class="carousel__btn" type="button" data-dir="1" aria-label="Next photograph">&#8250;</button>
+        </div>
+      </div>
+
+      <!-- To add more photographs, drop another <li class="carousel__slide"> in
+           here. The arrows, the dots and the counter all derive from the number
+           of slides, so nothing else needs touching. -->
+      <ul class="carousel__track" id="carousel-track" tabindex="0" aria-label="Photographs, use arrow keys">
+        <li class="carousel__slide">
+          <img src="assets/gallery-1.webp" alt="A laid table at the edge of the terrace looking out over the rocky Hersonissos coast" decoding="async">
+        </li>
+        <li class="carousel__slide">
+          <img src="assets/gallery-2.webp" alt="The Orion terrace at dusk, candles lit on the tables and the sea turning violet" decoding="async">
+        </li>
+        <li class="carousel__slide">
+          <img src="assets/gallery-3.webp" alt="Empty tables under the pergola after nightfall, the lights of the bay in the distance" loading="lazy" decoding="async">
+        </li>
+      </ul>
+
+      <div class="carousel__dots" id="carousel-dots" role="tablist" aria-label="Choose a photograph"></div>
+    </section>
+
     <section class="row row--flip" data-reveal>
       <div class="row__media">
         <div class="zoom">
@@ -239,34 +267,6 @@
     </section>
   </div>
 
-  <section class="gallery" id="gallery">
-    <div class="shell gallery__stack">
-      <figure data-reveal>
-        <div class="frame frame--wide">
-          <div class="zoom">
-            <img src="assets/gallery-1.webp" alt="A laid table at the edge of the terrace looking out over the rocky Hersonissos coast" loading="lazy" decoding="async">
-          </div>
-        </div>
-      </figure>
-
-      <div class="gallery__pair">
-        <figure class="gallery__tall" data-reveal>
-          <div class="frame frame--tall">
-            <div class="zoom">
-              <img src="assets/gallery-2.webp" alt="The Orion terrace at dusk, candles lit on the tables and the sea turning violet" loading="lazy" decoding="async">
-            </div>
-          </div>
-        </figure>
-        <figure class="gallery__landscape" data-reveal>
-          <div class="frame frame--wide">
-            <div class="zoom">
-              <img src="assets/gallery-3.webp" alt="Empty tables under the pergola after nightfall, the lights of the bay in the distance" loading="lazy" decoding="async">
-            </div>
-          </div>
-        </figure>
-      </div>
-    </div>
-  </section>
 
   <section class="visit" id="visit">
     <div class="shell visit__grid">

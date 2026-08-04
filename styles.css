@@ -492,25 +492,99 @@ img { max-width: 100%; }
   .row__text { max-width: none; }
 }
 
-/* ── 06 Editorial gallery ─────────────────────────────────────── */
+/* ── Gallery carousel ─────────────────────────────────────────── */
 
-.gallery { padding: 0 var(--gutter) clamp(104px, 18vh, 200px); }
+/* Native scroll-snap rather than a JS-driven transform track: it keeps touch
+   swiping, momentum and keyboard scrolling for free, and degrades to a plain
+   scrollable strip if the script never runs. */
+.carousel { padding: clamp(8px, 2vh, 24px) 0; }
 
-.gallery__stack {
+.carousel__head {
+  max-width: var(--shell);
+  margin: 0 auto clamp(20px, 2.6vh, 34px);
+  padding: 0 var(--gutter);
   display: flex;
-  flex-direction: column;
-  gap: clamp(48px, 8vw, 140px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-.gallery__pair {
+.carousel__nav { display: flex; gap: 10px; }
+
+.carousel__btn {
+  width: 48px;
+  height: 48px;
   display: flex;
-  flex-wrap: wrap;
-  gap: clamp(24px, 4vw, 72px);
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--seafoam);
+  border-radius: 50%;
+  background: none;
+  color: var(--aegean);
+  font-family: var(--sans);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .35s ease, border-color .35s ease, color .35s ease, opacity .35s ease;
+}
+.carousel__btn:hover { background: var(--aegean); border-color: var(--aegean); color: var(--salt); }
+.carousel__btn[disabled] { opacity: .3; cursor: default; }
+.carousel__btn[disabled]:hover { background: none; border-color: var(--seafoam); color: var(--aegean); }
+
+.carousel__track {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  gap: clamp(12px, 1.6vw, 28px);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  /* The page's smooth scroll-behaviour would fight programmatic scrollBy. */
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.carousel__track::-webkit-scrollbar { display: none; }
+
+.carousel__slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  height: clamp(46vh, 66vh, 82vh);
+  overflow: hidden;
+  background: var(--salt);
+}
+/* A sliver of the next photograph signals that the strip continues. */
+@media (min-width: 881px) {
+  .carousel__slide { flex-basis: 86%; }
+}
+.carousel__slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.carousel__dots {
+  max-width: var(--shell);
+  margin: clamp(18px, 2.4vh, 30px) auto 0;
+  padding: 0 var(--gutter);
+  display: flex;
+  gap: 10px;
 }
 
-.gallery__tall { flex: 1 1 min(100%, 320px); }
-.gallery__landscape { flex: 1.6 1 min(100%, 420px); margin-top: clamp(0px, 7vw, 120px); }
+.carousel__dot {
+  width: 30px;
+  height: 2px;
+  padding: 0;
+  border: 0;
+  background: var(--seafoam);
+  cursor: pointer;
+  transition: background .4s ease;
+}
+.carousel__dot[aria-selected="true"] { background: var(--aegean); }
+/* The bar itself is 2px; give the pointer and finger something real to hit. */
+.carousel__dot { position: relative; }
+.carousel__dot::after { content: ''; position: absolute; inset: -14px -4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__track { scroll-behavior: auto; }
+}
 
 /* ── 07 Visit ─────────────────────────────────────────────────── */
 

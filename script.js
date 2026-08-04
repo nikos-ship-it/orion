@@ -231,6 +231,124 @@
     heroVideo.pause();
   }
 
+  /* ── Gallery carousel ─────────────────────────────────────────── */
+
+  var track = document.getElementById('carousel-track');
+  if (track && track.children.length) {
+    var slides = Array.prototype.slice.call(track.children);
+    var dotsBox = document.getElementById('carousel-dots');
+    var arrows = Array.prototype.slice.call(document.querySelectorAll('.carousel__btn'));
+    var index = 0;
+    var manual = false;   // a real interaction retires the autoplay for good
+    var timer = null;
+
+    // Dots are generated from the slide count, so adding a <li> is enough.
+    var dots = slides.map(function (_, i) {
+      var d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'carousel__dot';
+      d.setAttribute('role', 'tab');
+      d.setAttribute('aria-label', 'Photograph ' + (i + 1) + ' of ' + slides.length);
+      d.addEventListener('click', function () { stopAuto(); goTo(i); });
+      dotsBox.appendChild(d);
+      return d;
+    });
+
+    var step = function () {
+      // Measured, not assumed: slide width is a percentage and the gap is fluid.
+      if (slides.length < 2) return track.clientWidth;
+      return slides[1].getBoundingClientRect().left - slides[0].getBoundingClientRect().left;
+    };
+
+    // A lazy <img> inside a horizontally scrolled strip never enters the
+    // viewport on vertical scroll, so it would sit unloaded until clicked and
+    // then pop in. Promote the neighbours as soon as they are one step away;
+    // assigning loading="eager" starts the fetch immediately.
+    function warmNeighbours() {
+      [index - 1, index + 1].forEach(function (i) {
+        var slide = slides[i];
+        if (!slide) return;
+        var img = slide.querySelector('img');
+        if (img && img.loading === 'lazy') img.loading = 'eager';
+      });
+    }
+
+    function paint() {
+      warmNeighbours();
+      dots.forEach(function (d, i) { d.setAttribute('aria-selected', String(i === index)); });
+      arrows.forEach(function (a) {
+        var dir = Number(a.dataset.dir);
+        // Only disable at the ends once the visitor is driving; while autoplay
+        // is running it wraps, so nothing is ever a dead end.
+        a.disabled = manual && ((dir < 0 && index === 0) || (dir > 0 && index === slides.length - 1));
+      });
+    }
+
+    function goTo(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      track.scrollTo({ left: index * step(), behavior: reduceMotion ? 'auto' : 'smooth' });
+      paint();
+    }
+
+    function stopAuto() {
+      manual = true;
+      if (timer) { clearInterval(timer); timer = null; }
+      paint();
+    }
+
+    arrows.forEach(function (a) {
+      a.addEventListener('click', function () {
+        stopAuto();
+        goTo(index + Number(a.dataset.dir));
+      });
+    });
+
+    // Swiping and native scrolling are the source of truth for the index.
+    var settle = null;
+    track.addEventListener('scroll', function () {
+      clearTimeout(settle);
+      settle = setTimeout(function () {
+        var s = step();
+        if (s > 0) { index = Math.round(track.scrollLeft / s); paint(); }
+      }, 90);
+    }, { passive: true });
+
+    track.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      stopAuto();
+      goTo(index + (e.key === 'ArrowRight' ? 1 : -1));
+    });
+
+    window.addEventListener('resize', function () { if (!manual) goTo(index); });
+
+    if (!reduceMotion) {
+      var tick = function () {
+        if (manual) return;
+        goTo(index >= slides.length - 1 ? 0 : index + 1);
+      };
+      var startAuto = function () {
+        if (manual || timer) return;
+        timer = setInterval(tick, 5200);
+      };
+      var pauseAuto = function () { if (timer) { clearInterval(timer); timer = null; } };
+
+      startAuto();
+      // Pause while someone is looking at or touching it, and while the tab is
+      // in the background — an unseen carousel should not keep advancing.
+      track.addEventListener('mouseenter', pauseAuto);
+      track.addEventListener('mouseleave', startAuto);
+      track.addEventListener('focusin', pauseAuto);
+      track.addEventListener('focusout', startAuto);
+      track.addEventListener('touchstart', stopAuto, { passive: true });
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) pauseAuto(); else startAuto();
+      });
+    }
+
+    paint();
+  }
+
   /* ── Mobile navigation ────────────────────────────────────────── */
 
   var navPanel = document.getElementById('nav-mobile');
