@@ -42,9 +42,15 @@
     }
 
     if (pendingReveals.length) {
-      var limit = window.innerHeight * 0.9;
+      var vh = window.innerHeight;
+      // Once the page can scroll no further, the last element never gets any
+      // closer to the trigger line — a tall block at the very bottom could sit
+      // just past it after a hard fling and stay hidden. At the bottom, flush
+      // whatever is left.
+      var atBottom = vh + window.scrollY >= document.documentElement.scrollHeight - 2;
+      var limit = vh * 0.9;
       pendingReveals = pendingReveals.filter(function (el) {
-        if (el.getBoundingClientRect().top > limit) return true;
+        if (!atBottom && el.getBoundingClientRect().top > limit) return true;
         el.classList.add('is-shown');
         return false;
       });

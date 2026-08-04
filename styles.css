@@ -726,12 +726,46 @@ img { max-width: 100%; }
   display: block;
 }
 
+/* ── 07b Closing call to action ───────────────────────────────── */
+
+/* A quiet Deep Aegean band that closes the page, sitting between the salt-white
+   Visit section and the footer. Deliberately the same colour as the footer so
+   the two read as one dark base rather than two stripes, with only a hairline
+   between them. */
+.closing {
+  background: var(--aegean);
+  color: var(--salt);
+  padding: clamp(96px, 17vh, 190px) var(--gutter);
+  text-align: center;
+}
+.closing__inner { max-width: 720px; margin: 0 auto; }
+.closing__title {
+  margin-top: clamp(14px, 1.6vw, 22px);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(44px, 6.4vw, 96px);
+  line-height: 1.02;
+  letter-spacing: -.02em;
+  color: var(--white);
+}
+.closing__actions {
+  margin-top: clamp(30px, 4vh, 48px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(18px, 2.4vw, 34px);
+}
+
 /* ── 08 Footer ────────────────────────────────────────────────── */
 
 .site-footer {
   background: var(--aegean);
   color: var(--salt);
   padding: clamp(64px, 11vh, 132px) var(--gutter) clamp(32px, 5vh, 56px);
+  /* The closing band above is the same Aegean; a hairline keeps them from
+     melting into one undifferentiated block. */
+  border-top: 1px solid rgba(250, 247, 240, .10);
 }
 
 .site-footer__inner {
@@ -746,8 +780,18 @@ img { max-width: 100%; }
 .site-footer__logo { display: block; width: clamp(84px, 9vw, 124px); line-height: 0; }
 .site-footer__logo img { display: block; width: 100%; height: auto; }
 
+.site-footer__tagline {
+  margin-top: clamp(22px, 3vh, 34px);
+  max-width: 30ch;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.4;
+  color: rgba(250, 247, 240, .82);
+}
+
 .site-footer__nav {
-  margin-top: clamp(40px, 6vh, 64px);
+  margin-top: clamp(32px, 5vh, 52px);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
