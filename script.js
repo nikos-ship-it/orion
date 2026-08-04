@@ -89,10 +89,14 @@
 
   var preloader = document.getElementById('preloader');
   if (preloader) {
+    var seenThisSession = false;
+    try { seenThisSession = sessionStorage.getItem('orion-seen') === '1'; } catch (e) {}
+
     var dismissed = false;
     var dismiss = function () {
       if (dismissed) return;
       dismissed = true;
+      try { sessionStorage.setItem('orion-seen', '1'); } catch (e) {}
       preloader.classList.add('is-done');
       // Hand off to the hero entrance as the curtain lifts.
       document.body.classList.add('hero-in');
@@ -100,18 +104,30 @@
       setTimeout(function () { preloader.remove(); }, 1000);
     };
 
-    // Give the intro animation room to read, but never gate on it.
-    var MIN_MS = reduceMotion ? 0 : 1600;
-    var started = Date.now();
-    var whenReady = function () {
-      setTimeout(dismiss, Math.max(0, MIN_MS - (Date.now() - started)));
-    };
+    if (seenThisSession || reduceMotion) {
+      // The curtain is a first-impression, not a toll gate. If it has already
+      // played this session (or motion is reduced), lift it on the next frame.
+      requestAnimationFrame(dismiss);
+    } else {
+      // Give the intro room to read, but never gate on it. 1.1s min (was 1.6s).
+      var MIN_MS = 1100;
+      var started = Date.now();
+      var whenReady = function () {
+        setTimeout(dismiss, Math.max(0, MIN_MS - (Date.now() - started)));
+      };
 
-    if (document.readyState === 'complete') whenReady();
-    else window.addEventListener('load', whenReady);
+      // Lift as soon as the hero image has decoded — usually well before full
+      // page load — so the curtain tracks the thing it is covering.
+      var heroImg = document.querySelector('.hero__media img');
+      if (heroImg && heroImg.complete) whenReady();
+      else if (heroImg) heroImg.addEventListener('load', whenReady, { once: true });
 
-    // Hard ceiling: a stalled or failed asset must not leave the page hidden.
-    setTimeout(dismiss, 2500);
+      if (document.readyState === 'complete') whenReady();
+      else window.addEventListener('load', whenReady);
+
+      // Hard ceiling: a stalled or failed asset must not leave the page hidden.
+      setTimeout(dismiss, 2500);
+    }
   }
 
   /* ── Slow eased anchor scrolling ──────────────────────────────── */
@@ -242,15 +258,33 @@
   /* ── Hero video ───────────────────────────────────────────────── */
 
   var heroVideo = document.getElementById('hero-video');
+  var heroMotion = document.getElementById('hero-motion');
   if (heroVideo && !reduceMotion) {
     var show = function () { heroVideo.classList.add('is-visible'); };
     if (heroVideo.readyState >= 3) show();
     else heroVideo.addEventListener('canplay', show, { once: true });
     var playing = heroVideo.play();
     if (playing && playing.catch) playing.catch(function () {});
+
+    // Reveal the pause control only once the video is really running.
+    if (heroMotion) {
+      heroMotion.hidden = false;
+      heroMotion.addEventListener('click', function () {
+        if (heroVideo.paused) {
+          heroVideo.play();
+          heroMotion.classList.remove('is-paused');
+          heroMotion.setAttribute('aria-label', 'Pause background video');
+        } else {
+          heroVideo.pause();
+          heroMotion.classList.add('is-paused');
+          heroMotion.setAttribute('aria-label', 'Play background video');
+        }
+      });
+    }
   } else if (heroVideo) {
     heroVideo.removeAttribute('autoplay');
     heroVideo.pause();
+    if (heroMotion) heroMotion.remove();
   }
 
   /* ── Gallery carousel ─────────────────────────────────────────── */
@@ -259,6 +293,7 @@
   if (track && track.children.length) {
     var slides = Array.prototype.slice.call(track.children);
     var dotsBox = document.getElementById('carousel-dots');
+    var countEl = document.getElementById('carousel-count');
     var arrows = Array.prototype.slice.call(document.querySelectorAll('.carousel__btn'));
     var index = 0;
     var manual = false;   // a real interaction retires the autoplay for good
@@ -318,6 +353,9 @@
 
     function paint() {
       warmNeighbours();
+      // Position status for magnifier / screen-reader users — a 17-slide strip
+      // gave no sense of place without it. aria-live announces each move.
+      if (countEl) countEl.textContent = (index + 1) + ' / ' + slides.length;
       dots.forEach(function (d, i) { d.setAttribute('aria-selected', String(i === index)); });
       arrows.forEach(function (a) {
         var dir = Number(a.dataset.dir);
@@ -373,13 +411,18 @@
     window.addEventListener('resize', function () { index = nearestIndex(); paint(); });
 
     if (!reduceMotion) {
+      // Autoplay advertises that the strip scrolls, then gets out of the way:
+      // it steps through once and retires at the end rather than looping forever
+      // under a reading eye competing with the scroll-reveals. Slower cadence too.
+      var autoRetired = false;
       var tick = function () {
         if (manual) return;
-        goTo(atEnd() ? 0 : index + 1);
+        if (atEnd()) { pauseAuto(); autoRetired = true; return; }
+        goTo(index + 1);
       };
       var startAuto = function () {
-        if (manual || timer) return;
-        timer = setInterval(tick, 5200);
+        if (manual || timer || autoRetired) return;
+        timer = setInterval(tick, 6000);
       };
       var pauseAuto = function () { if (timer) { clearInterval(timer); timer = null; } };
 
@@ -459,4 +502,32 @@
       document.body.style.overflow = '';
     }
   });
+
+  /* ── Open / closed status ─────────────────────────────────────── */
+
+  // Driven off the venue's own timezone, not the visitor's: a traveller reading
+  // this from another country must see whether Orion is open in CRETE. The hours
+  // (15:00–23:00 daily) are the single source; keep them equal to the JSON-LD.
+  var statusEl = document.querySelector('[data-open-status]');
+  if (statusEl) {
+    var OPEN_HOUR = 15, CLOSE_HOUR = 23, VENUE_TZ = 'Europe/Athens';
+    var athensMinutes = function () {
+      // en-GB, 24h, in the venue timezone → "HH:MM"; Intl applies Athens DST.
+      var hm = new Date().toLocaleString('en-GB', {
+        timeZone: VENUE_TZ, hour12: false, hour: '2-digit', minute: '2-digit'
+      }).split(':');
+      return (parseInt(hm[0], 10) % 24) * 60 + parseInt(hm[1], 10);
+    };
+    var renderStatus = function () {
+      var open = (function () {
+        var m = athensMinutes();
+        return m >= OPEN_HOUR * 60 && m < CLOSE_HOUR * 60;
+      })();
+      statusEl.hidden = false;
+      statusEl.setAttribute('data-state', open ? 'open' : 'closed');
+      statusEl.textContent = open ? 'Open now · until 11 PM' : 'Closed · opens 3 PM';
+    };
+    renderStatus();
+    setInterval(renderStatus, 60000);
+  }
 })();

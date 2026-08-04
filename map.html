@@ -78,6 +78,24 @@
   var ORION = [35.31042466, 25.40176382];  // confirmed: Plus Code 8C62+5P Hersonissos
   var TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   var ATTR = '© OpenStreetMap contributors';
+  var GMAPS_HREF = 'https://www.google.com/maps/search/?api=1&query=' + ORION[0] + '%2C' + ORION[1];
+
+  // If the Leaflet CDN is blocked or fails, `L` never exists and the whole map
+  // would be a blank frame. Show a real fallback (mark + address + a way there)
+  // instead of a void, and stop before the code that assumes L.
+  if (typeof L === 'undefined') {
+    document.getElementById('map').innerHTML =
+      '<a href="' + GMAPS_HREF + '" target="_blank" rel="noopener" ' +
+      'style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;' +
+      'justify-content:center;gap:16px;text-align:center;color:#0E3550;text-decoration:none;padding:24px">' +
+      '<span style="display:grid;place-items:center;width:68px;height:68px;border-radius:50%;' +
+      'background:#fff;box-shadow:0 8px 24px rgba(14,53,80,.16)">' +
+      '<img src="assets/orion-logo.png" alt="" width="44"></span>' +
+      '<span style="font-size:13px;letter-spacing:.04em;line-height:1.7">' +
+      '<strong style="display:block;font-size:15px;font-weight:500">Kallergi 8, Hersonissos</strong>' +
+      'Open in Google Maps</span></a>';
+    throw new Error('Leaflet unavailable — showing static map fallback.');
+  }
 
   function rgb2hsl(r, g, b) {
     r /= 255; g /= 255; b /= 255;

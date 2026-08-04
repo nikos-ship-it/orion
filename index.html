@@ -38,7 +38,7 @@
      without a new URL a returning phone pairs new HTML with an old script.js.
      That is exactly what happened: the cached script had no preloader handling,
      so the curtain never lifted and the phone showed nothing but the preloader. -->
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
 
 <!-- Critical preloader rules, inline on purpose. The preloader is the first
@@ -158,18 +158,24 @@
       <img class="logo__dark" src="assets/orion-logo.png" alt="">
     </a>
 
-    <nav class="nav-desktop" aria-label="Primary">
-      <a class="nav-link" href="#experience">Our Story</a>
-      <a class="nav-link" href="#gallery">Gallery</a>
-      <a class="nav-link" href="#table">The Orion Table</a>
-      <a class="nav-link" href="#visit">Visit</a>
-      <a class="nav-menu-cta" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Menu</a>
-    </nav>
+    <div class="header-right">
+      <nav class="nav-desktop" aria-label="Primary">
+        <a class="nav-link" href="#experience">Our Story</a>
+        <a class="nav-link" href="#gallery">Gallery</a>
+        <a class="nav-link" href="#table">The Orion Table</a>
+        <a class="nav-link" href="#visit">Visit</a>
+      </nav>
 
-    <button class="nav-toggle" type="button" id="nav-open" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-mobile">
-      <span></span>
-      <span></span>
-    </button>
+      <!-- Menu CTA lives on the header bar itself, not inside nav-desktop, so it
+           stays visible on mobile where the links collapse into the hamburger —
+           otherwise there was no visible Menu button once you scrolled. -->
+      <a class="nav-menu-cta" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View Menu</a>
+
+      <button class="nav-toggle" type="button" id="nav-open" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-mobile">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -183,7 +189,7 @@
     <a href="#gallery">Gallery</a>
     <a href="#table">The Orion Table</a>
     <a href="#visit">Visit</a>
-    <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Explore the Menu</a>
+    <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View Menu</a>
   </nav>
 </div>
 
@@ -198,10 +204,18 @@
     <h1 class="hero__title">The sea sets<br>the pace</h1>
     <p class="hero__lede">Meze to share, ouzo poured cold and evenings made to last.</p>
     <div class="hero__actions">
-      <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Explore the Menu</a>
+      <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View Menu</a>
       <a class="link-underline link-underline--on-dark" href="#visit">Find Orion</a>
     </div>
   </div>
+
+  <!-- Shown by script.js only when the video is actually playing (never for
+       reduced-motion, where the video doesn't run). Lets a motion-tolerant
+       visitor stop the loop. -->
+  <button class="hero__motion" id="hero-motion" type="button" aria-label="Pause background video" hidden>
+    <svg class="hero__motion-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    <svg class="hero__motion-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+  </button>
 </section>
 
 <main>
@@ -226,6 +240,7 @@
       <div class="carousel__head">
         <h2 class="carousel__title">Gallery</h2>
         <div class="carousel__nav">
+          <p class="carousel__count" id="carousel-count" aria-live="polite" aria-atomic="true"></p>
           <button class="carousel__btn" type="button" data-dir="-1" aria-label="Previous photograph">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 4 7 12l8 8"/></svg>
           </button>
@@ -346,6 +361,10 @@
       <div class="visit__info" data-reveal>
         <p class="eyebrow">Visit Orion</p>
         <h2 class="visit__title">Find your place by the sea</h2>
+        <!-- Populated by script.js from the venue's own timezone (Europe/Athens),
+             so a visitor abroad still sees the real open/closed state. Hidden
+             until JS fills it; the static hours below remain the no-JS truth. -->
+        <p class="visit__status" data-open-status hidden aria-live="polite"></p>
         <p class="visit__lede">Orion sits on the waterfront of Hersonissos, on the northern coast of Crete and about 25 kilometres from Heraklion. Join us while the terrace is still bright, or come later, when the temperature drops and the evening settles into its own rhythm. No occasion required — a table by the sea is reason enough.</p>
 
         <dl class="visit__details">
@@ -368,15 +387,23 @@
         </dl>
 
         <div class="visit__actions">
+          <a class="btn-primary" href="tel:+302897025030" aria-label="Call Orion Ouzeri to reserve a table">Reserve a table</a>
           <a class="btn-ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=35.31042466%2C25.40176382" target="_blank" rel="noopener">Get Directions</a>
-          <a class="link-underline" href="tel:+302897025030">Call Orion</a>
-          <a class="visit__menu-link" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Menu</a>
+          <a class="btn-ghost" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View Menu</a>
         </div>
+        <p class="visit__note">Reservations by phone. Walk-ins are always welcome — there is usually a table by the water.</p>
       </div>
 
       <div class="visit__map" data-reveal>
         <div class="visit__map-frame">
-          <iframe src="map.html?v=6" title="Map of Orion Ouzeri, Kallergi 8, Hersonissos" loading="lazy"></iframe>
+          <!-- Address + Google Maps link sitting behind the iframe: if the map
+               is slow, blocked, or the tile CDN fails, the frame still shows
+               where Orion is and offers a way there, instead of a grey void. -->
+          <a class="visit__map-fallback" href="https://www.google.com/maps/search/?api=1&amp;query=35.31042466%2C25.40176382" target="_blank" rel="noopener">
+            <span class="visit__map-pin" aria-hidden="true"><img src="assets/orion-logo.png" alt="" width="44"></span>
+            <span class="visit__map-addr"><strong>Kallergi 8, Hersonissos</strong>Open in Google Maps</span>
+          </a>
+          <iframe src="map.html?v=7" title="Map of Orion Ouzeri, Kallergi 8, Hersonissos" loading="lazy"></iframe>
         </div>
       </div>
     </div>
@@ -387,7 +414,7 @@
       <p class="eyebrow eyebrow--on-dark">Come for a plate. Stay for the evening.</p>
       <h2 class="closing__title">Meet us at the table</h2>
       <div class="closing__actions">
-        <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View the Menu</a>
+        <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View Menu</a>
         <a class="link-underline link-underline--on-dark" href="#visit">Find Us</a>
       </div>
     </div>
@@ -441,7 +468,7 @@
   </div>
 </footer>
 
-<script src="script.js?v=6" defer></script>
-<script src="consent.js?v=6" defer></script>
+<script src="script.js?v=7" defer></script>
+<script src="consent.js?v=7" defer></script>
 </body>
 </html>

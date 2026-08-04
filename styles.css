@@ -7,7 +7,10 @@
   --saffron-hover: #F3B948;
   --orion-blue: #1580C4;
   --seafoam: #C7DCE4;
-  --slate: #6E8494;
+  /* Darkened from #6E8494 (3.6:1 on salt — below AA) to meet WCAG AA 4.5:1 for
+     text; the detector flagged the old value on ~9 label/body uses. Keeps the
+     blue-grey hue, now 5.3:1 on salt / 5.6:1 on white. */
+  --slate: #566A79;
 
   /* Cormorant Garamond over EB Garamond: higher stroke contrast and finer
      terminals, which reads as quiet luxury at display sizes. It runs ~8%
@@ -58,7 +61,15 @@ img { max-width: 100%; }
 
 ::selection { background: var(--saffron); color: var(--ink); }
 
-:focus-visible { outline: 1px solid var(--orion-blue); outline-offset: 5px; }
+/* A visible 2px focus ring (WCAG 2.4.7 / focus-states rule wants 2–4px). Orion
+   blue on light surfaces; switched to salt over the dark hero, header, closing
+   band and footer, and inside the mobile nav, where blue-on-dark is too faint. */
+:focus-visible { outline: 2px solid var(--orion-blue); outline-offset: 3px; }
+.hero :focus-visible,
+.site-header:not(.is-past) .nav-link:focus-visible,
+.closing :focus-visible,
+.site-footer :focus-visible,
+.nav-mobile :focus-visible { outline-color: var(--salt); }
 
 .shell { max-width: var(--shell); margin: 0 auto; }
 
@@ -203,6 +214,22 @@ img { max-width: 100%; }
   transition: background .55s ease, color .55s ease, border-color .55s ease;
 }
 
+/* Scrim behind the transparent header: the white nav sat over bright sky at the
+   top of the hero with no protection, so legibility depended on the photo. A
+   soft top-down darkening guarantees contrast; it fades out once the header goes
+   solid on scroll. */
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 53, 80, .40), rgba(14, 53, 80, 0));
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .55s ease;
+}
+.site-header.is-past::before { opacity: 0; }
+.site-header__inner { position: relative; }
+
 .site-header.is-past {
   background: var(--white);
   color: var(--aegean);
@@ -230,6 +257,12 @@ img { max-width: 100%; }
 .logo__dark { position: absolute; left: 0; top: 0; opacity: 0; }
 .site-header.is-past .logo__light { opacity: 0; }
 .site-header.is-past .logo__dark { opacity: 1; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.6vw, 40px);
+}
 
 .nav-desktop {
   display: flex;
@@ -390,6 +423,32 @@ img { max-width: 100%; }
   pointer-events: none;
 }
 
+/* Pause/play toggle, bottom-right of the hero, deliberately quiet. */
+.hero__motion {
+  position: absolute;
+  right: clamp(16px, 2vw, 30px);
+  bottom: clamp(16px, 2vw, 30px);
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(250, 247, 240, .5);
+  border-radius: 50%;
+  background: rgba(14, 53, 80, .32);
+  color: var(--salt);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: .7;
+  transition: opacity .35s ease, background .35s ease, transform .35s var(--ease);
+}
+.hero__motion:hover { opacity: 1; transform: translateY(-2px); }
+.hero__motion svg { width: 18px; height: 18px; display: block; }
+.hero__motion .hero__motion-play { display: none; }
+.hero__motion.is-paused .hero__motion-pause { display: none; }
+.hero__motion.is-paused .hero__motion-play { display: block; }
+
 .hero__content {
   position: relative;
   width: 100%;
@@ -540,7 +599,16 @@ img { max-width: 100%; }
   color: var(--aegean);
 }
 
-.carousel__nav { display: flex; gap: 10px; }
+.carousel__nav { display: flex; align-items: center; gap: 10px; }
+.carousel__count {
+  margin-right: 6px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: .08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--slate);
+}
 
 .carousel__track {
   max-width: var(--shell);
@@ -558,7 +626,7 @@ img { max-width: 100%; }
   scrollbar-width: none;
 }
 .carousel__track::-webkit-scrollbar { display: none; }
-.carousel__track:focus-visible { outline: 1px solid var(--orion-blue); outline-offset: 8px; }
+.carousel__track:focus-visible { outline: 2px solid var(--orion-blue); outline-offset: 8px; }
 
 .carousel__slide {
   flex: 0 0 var(--carousel-slide);
@@ -580,6 +648,7 @@ img { max-width: 100%; }
    The chevron is Deep Aegean, not the lighter Orion blue: that pairing only
    reaches 2.1:1 against saffron, where this one is 6.3:1. */
 .carousel__btn {
+  flex: 0 0 auto;   /* never let the counter squeeze the discs on narrow screens */
   width: clamp(52px, 4vw, 62px);
   height: clamp(52px, 4vw, 62px);
   display: flex;
@@ -621,7 +690,9 @@ img { max-width: 100%; }
   display: flex;
   flex-wrap: wrap;
   gap: clamp(44px, 6vw, 120px);
-  align-items: flex-start;
+  /* Centre the shorter info column against the taller map so it doesn't leave a
+     large void at the bottom on wide screens. */
+  align-items: center;
 }
 
 .visit__info { flex: 1 1 min(100%, 380px); max-width: 520px; }
@@ -694,19 +765,37 @@ img { max-width: 100%; }
   gap: clamp(18px, 2.4vw, 32px);
 }
 
-.visit__menu-link {
+/* Open/closed chip, filled by script.js. Green-ish and amber tuned to sit in the
+   brand world rather than stock traffic-light colours. */
+.visit__status {
   display: inline-flex;
   align-items: center;
-  min-height: 52px;
-  color: var(--slate);
+  gap: 8px;
+  margin-top: clamp(16px, 2vw, 22px);
+  padding: 7px 15px 7px 13px;
+  border-radius: var(--radius-pill);
   font-family: var(--sans);
   font-weight: 500;
   font-size: 12px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  transition: color .4s ease;
+  letter-spacing: .06em;
 }
-.visit__menu-link:hover { color: var(--aegean); }
+.visit__status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.visit__status[data-state="open"] { background: rgba(31, 122, 74, .12); color: #1F7A4A; }
+.visit__status[data-state="closed"] { background: rgba(14, 53, 80, .08); color: var(--aegean); }
+
+.visit__note {
+  margin-top: clamp(16px, 2vw, 22px);
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--slate);
+}
 
 .visit__map { flex: 1.15 1 min(100%, 400px); }
 
@@ -717,9 +806,49 @@ img { max-width: 100%; }
   overflow: hidden;
   background: #DCE9EE;
 }
+
+/* Sits behind the iframe; the loaded map covers it, a blank/blocked map does not. */
+.visit__map-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  color: var(--aegean);
+  background: #DCE9EE;
+}
+.visit__map-pin {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 8px 24px rgba(14, 53, 80, .16);
+}
+.visit__map-pin img { display: block; width: 44px; height: auto; }
+.visit__map-addr {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: .04em;
+  line-height: 1.7;
+}
+.visit__map-addr strong {
+  display: block;
+  font-weight: 500;
+  font-size: 15px;
+}
+.visit__map-fallback:hover .visit__map-addr strong { text-decoration: underline; }
+
 .visit__map-frame iframe {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   border: 0;
@@ -881,7 +1010,8 @@ img { max-width: 100%; }
   font-size: 12px;
   letter-spacing: .06em;
 }
-.site-footer__base p { opacity: .5; }
+/* .5 was 4.17:1 on Aegean — just under AA for this small credit text; .62 is 5.5:1. */
+.site-footer__base p { opacity: .62; }
 .site-footer__base a {
   color: inherit;
   background-image: linear-gradient(currentColor, currentColor);
