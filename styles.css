@@ -353,7 +353,10 @@ img { max-width: 100%; }
 
 .hero {
   position: relative;
-  min-height: min(100svh, 1020px);
+  /* Full viewport height, no pixel cap: a 1020px ceiling left a 2K screen with
+     only 71% of its height filled. svh (not vh) so mobile browser chrome
+     showing or hiding does not resize the hero mid-scroll. */
+  min-height: 100svh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -584,13 +587,6 @@ img { max-width: 100%; }
   color: var(--ink);
 }
 .visit__tel:hover { color: var(--ink); }
-
-.visit__services {
-  margin-top: 22px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--slate);
-}
 
 .visit__actions {
   margin-top: clamp(32px, 4vw, 52px);
