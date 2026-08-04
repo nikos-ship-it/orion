@@ -110,7 +110,10 @@ Two things load from the network at runtime:
 - **Google Fonts** — Cormorant Garamond (display) and Jost (body/UI).
 - **Leaflet + OpenStreetMap tiles** (`map.html`) — the map recolours OSM tiles
   pixel-by-pixel onto a canvas to match the Orion palette, so it needs
-  `crossOrigin` tile access. No API key.
+  `crossOrigin` tile access. No API key. The pin and its label are one link that
+  opens the venue in Google Maps in a new tab; `.om-pin` itself has
+  `pointer-events: none`, because the marker's box is 0×0 with its parts hanging
+  off it and would otherwise eat drags meant for the map.
 
 Both degrade gracefully: the page falls back to system serif/sans, and the map
 area stays an empty sand-coloured panel.

@@ -20,8 +20,17 @@
   .leaflet-control-attribution{background:rgba(244,241,234,.9)!important;color:#8C8579!important;font-size:10px!important;padding:3px 8px!important;border-radius:999px 0 0 0}
   .leaflet-control-attribution a{color:#0E3550!important;text-decoration:none}
 
-  /* Pin: the Orion mark on a white disc, with a soft halo ring pulsing out. */
-  .om-pin{position:relative}
+  /* Pin: the Orion mark on a white disc, with a soft halo ring pulsing out.
+     The container is 0×0 and its children hang off it, so pointer events are
+     switched off there and back on for the link alone — otherwise the invisible
+     box would eat drags meant for the map. */
+  .om-pin{position:relative;pointer-events:none}
+  .om-pin .om-link{display:block;pointer-events:auto;cursor:pointer;text-decoration:none}
+  .om-pin .om-link:focus-visible{outline:none}
+  .om-pin .om-link:focus-visible .om-disc{box-shadow:0 0 0 3px #EFA92B,0 12px 30px rgba(14,53,80,.24)}
+  .om-pin .om-disc,.om-pin .om-label{transition:transform .35s cubic-bezier(.22,.61,.24,1),background .35s ease}
+  .om-pin .om-link:hover .om-disc{transform:scale(1.06)}
+  .om-pin .om-link:hover .om-label{background:#EFA92B;color:#16232D}
   .om-pin .om-disc{
     position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;
     border-radius:50%;background:#FFFFFF;
@@ -145,16 +154,25 @@
   });
   new Med({ maxZoom: 19, attribution: ATTR, updateWhenIdle: false }).addTo(map);
 
+  // Tapping the pin or its label opens the real Google Maps entry, in a new tab.
+  // target="_top" would replace the whole site; this page is in an iframe, so the
+  // link has to be explicit about opening a new tab rather than navigating the
+  // frame it lives in.
+  var GMAPS = 'https://www.google.com/maps/search/?api=1&query=' + ORION[0] + '%2C' + ORION[1];
+
   L.marker(ORION, {
     icon: L.divIcon({
       className: 'om-pin',
       html: '<span class="om-halo"></span>' +
             '<span class="om-stem"></span><span class="om-dot"></span>' +
-            '<span class="om-disc"><img src="assets/orion-logo.png" alt="Orion Ouzeri"></span>' +
-            '<div class="om-label">Orion Ouzeri</div>',
+            '<a class="om-link" href="' + GMAPS + '" target="_blank" rel="noopener"' +
+              ' aria-label="Open Orion Ouzeri in Google Maps">' +
+              '<span class="om-disc"><img src="assets/orion-logo.png" alt="Orion Ouzeri"></span>' +
+              '<span class="om-label">Orion Ouzeri</span>' +
+            '</a>',
       iconSize: [0, 0]
     }),
-    keyboard: false, title: 'Orion Ouzeri — Kallergi 8'
+    keyboard: false, interactive: false, title: 'Orion Ouzeri — open in Google Maps'
   }).addTo(map);
 
   document.getElementById('zin').onclick = function () { map.zoomIn(); };

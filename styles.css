@@ -523,7 +523,18 @@ img { max-width: 100%; }
   gap: 24px;
 }
 
-.carousel__nav { display: flex; gap: 4px; }
+/* A proper section heading, at the same scale as the chess rows' titles, rather
+   than the small eyebrow this used to be. */
+.carousel__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(38px, 4.6vw, 76px);
+  line-height: 1.06;
+  letter-spacing: -.015em;
+  color: var(--aegean);
+}
+
+.carousel__nav { display: flex; gap: 10px; }
 
 .carousel__track {
   max-width: var(--shell);
@@ -558,26 +569,32 @@ img { max-width: 100%; }
   background: var(--salt);
 }
 
-/* Chevrons sit at the outer edges on the centre line, out of the pictures. */
+/* The logo itself: saffron disc, blue chevron. Solid discs rather than the bare
+   chevrons this started as — those read as decoration and were being missed.
+   The chevron is Deep Aegean, not the lighter Orion blue: that pairing only
+   reaches 2.1:1 against saffron, where this one is 6.3:1. */
 .carousel__btn {
-  width: 44px;
-  height: 44px;
+  width: clamp(52px, 4vw, 62px);
+  height: clamp(52px, 4vw, 62px);
   display: flex;
   align-items: center;
   justify-content: center;
   border: 0;
-  background: none;
+  border-radius: 50%;
+  background: var(--saffron);
   color: var(--aegean);
-  font-family: var(--sans);
-  font-size: 30px;
-  font-weight: 300;
-  line-height: 1;
   cursor: pointer;
-  opacity: .55;
-  transition: opacity .35s ease;
+  transition: background .35s ease, color .35s ease, transform .35s var(--ease);
 }
-.carousel__btn:hover { opacity: 1; }
-.carousel__btn[disabled] { opacity: .12; cursor: default; }
+.carousel__btn svg { width: 42%; height: 42%; display: block; }
+.carousel__btn:hover { background: var(--saffron-hover); transform: translateY(-2px); }
+/* At either end: still legible as a button, plainly not available. */
+.carousel__btn[disabled] {
+  background: var(--seafoam);
+  color: var(--slate);
+  cursor: default;
+  transform: none;
+}
 /* One photograph per screen on a phone, still uncropped. */
 @media (max-width: 880px) {
   .carousel { --carousel-slide: 88%; }
