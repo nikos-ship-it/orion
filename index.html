@@ -101,11 +101,16 @@
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
+  // Everything a visitor can choose starts denied. Only security_storage, which
+  // is not a choice, is granted. consent.js updates these from the panel.
   gtag('consent', 'default', {
     ad_storage: 'denied',
     ad_user_data: 'denied',
     ad_personalization: 'denied',
     analytics_storage: 'denied',
+    functionality_storage: 'denied',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
     wait_for_update: 500
   });
   gtag('js', new Date());
@@ -357,11 +362,34 @@
     </a>
 
     <nav class="site-footer__nav" aria-label="Footer">
-      <a href="https://www.instagram.com/orion_ouzeri/" target="_blank" rel="noopener">Instagram</a>
       <a href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">Menu</a>
       <a href="https://www.google.com/maps/dir/?api=1&amp;destination=35.31042466%2C25.40176382" target="_blank" rel="noopener">Directions</a>
       <a href="tel:+302897025030">Call</a>
+      <button type="button" class="site-footer__cookies" id="cookie-settings">Cookies</button>
     </nav>
+
+    <!-- Both marks are the official brand glyphs, drawn in currentColor: the
+         Instagram glyph is line art by design, the Facebook f is solid by
+         design, so the f is set a little smaller to even out the weight. -->
+    <nav class="site-footer__social" aria-label="Orion Ouzeri on social media">
+      <a class="social" href="https://www.instagram.com/orion_ouzeri/" target="_blank" rel="noopener" aria-label="Orion Ouzeri on Instagram">
+        <svg class="social__ig" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false">
+          <rect x="2.9" y="2.9" width="18.2" height="18.2" rx="5.2"/>
+          <circle cx="12" cy="12" r="4.2"/>
+          <circle cx="17.35" cy="6.65" r="1.05" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a class="social social--fb" href="https://www.facebook.com/orion.ouzeri" target="_blank" rel="noopener" aria-label="Orion Ouzeri on Facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-1.986.42-3.34 1.28-4.078.86-.738 2.16-1.107 3.9-1.107.578 0 1.156.024 1.734.072l.635.06v3.398h-1.35c-.702 0-1.19.14-1.462.42-.272.28-.408.72-.408 1.32v1.495h3.16l-.144 1.836-.144 1.83h-2.872v7.98H9.101z"/>
+        </svg>
+      </a>
+    </nav>
+
+    <p class="site-footer__member">
+      <span>Member of</span>
+      Cosmhotel Group
+    </p>
 
     <div class="site-footer__rule"></div>
 

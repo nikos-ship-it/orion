@@ -107,7 +107,7 @@ will not load.
 
 Two things load from the network at runtime:
 
-- **Google Fonts** — EB Garamond (display) and Manrope (body/UI).
+- **Google Fonts** — Cormorant Garamond (display) and Jost (body/UI).
 - **Leaflet + OpenStreetMap tiles** (`map.html`) — the map recolours OSM tiles
   pixel-by-pixel onto a canvas to match the Orion palette, so it needs
   `crossOrigin` tile access. No API key.
@@ -119,16 +119,34 @@ area stays an empty sand-coloured panel.
 
 **Google Analytics 4 — `G-KHPF04X7JW`.** Carried over from the WordPress site,
 so history stays in the same property; nothing to create in GA. It loads through
-Consent Mode v2 with `analytics_storage` defaulting to **denied**, and
-`consent.js` grants it only after the visitor accepts. Until then GA4 sends
-cookieless pings, which still report traffic without setting cookies. The choice
-is stored in `localStorage` under `orion-consent`.
+Consent Mode v2 with **every visitor-facing signal defaulting to denied**
+(`security_storage`, which is not a choice, is the only one granted). Until a
+choice is made GA4 sends cookieless pings, which still report traffic without
+setting cookies.
+
+`consent.js` is a Cookiebot-style panel, bottom right, in the logo's palette. It
+offers four categories, each wired to the signals it genuinely controls:
+
+| Category | Signals |
+| --- | --- |
+| Necessary — locked on | none; the site itself and the stored choice |
+| Preferences | `functionality_storage`, `personalization_storage` |
+| Statistics | `analytics_storage` |
+| Marketing | `ad_storage`, `ad_user_data`, `ad_personalization` |
+
+**Allow all** switches everything on, **Allow selection** takes the switches as
+they stand, **Decline** denies all four — and Decline sits in the same grid as
+Allow all, at the same size, because burying it is exactly what the law is about.
+On a phone the categories open behind **Customise**, so the collapsed card clears
+the hero's View Menu button on a 640px-tall screen. The choice is stored in
+`localStorage` under `orion-consent`, and the **Cookies** button in the footer
+reopens the panel with the remembered state, since consent has to be withdrawable.
 
 The old site gated analytics behind the Complianz plugin. `consent.js` is the
 static replacement — Orion is in the EU, so running GA without consent is not an
 option. To drop analytics altogether, delete `consent.js`, its `<script>` tag,
-the `gtag` block in `index.html`, and the "Consent banner" section of
-`styles.css`.
+the `gtag` block and the footer Cookies button in `index.html`, and the "Consent"
+section of `styles.css`.
 
 **Google Tag Manager: the old site never had a container** — it used gtag.js
 directly, which is what this site does too. Add GTM only if you actually need to
@@ -158,16 +176,15 @@ JSON-LD `openingHoursSpecification`. Update both if the hours change.
 
 ## Open items
 
-1. **Map pin is approximate.** `map.html` centres on `35.31010, 25.40300`. This
-   was estimated from the venue's surroundings, not confirmed. To fix: in Google
-   Maps, right-click the exact spot, copy the coordinates, and replace `ORION`
-   near the top of the `<script>` block in `map.html`.
+1. ~~**Map pin is approximate.**~~ **Done** — confirmed as
+   `35.31042465842155, 25.401763819402536` (Plus Code 8C62+5P Hersonissos) and set
+   as `ORION` at the top of the `<script>` block in `map.html`. The same pair is
+   in the JSON-LD `geo` and in the footer Directions link.
 2. **Contact details recovered from the old site** — the Instagram handle is
    `orion_ouzeri` (not `orionouzeri`, which was a guess and is now fixed), and
-   the email is `info@orionouzeri.gr`. Facebook is `facebook.com/orion.ouzeri`;
-   it appears in the JSON-LD `sameAs` but has no visible footer link, since the
-   approved design specified only Instagram, Menu, Directions and Call. Say if
-   you want it added.
+   the email is `info@orionouzeri.gr`. Facebook is `facebook.com/orion.ouzeri`.
+   Both now have circular icon links in the footer, drawn as inline SVG in the
+   official brand glyphs — no third-party icon font, nothing to load.
 3. ~~**Hero video is 16 MB.**~~ **Done** — re-encoded to **2.36 MB** (was 15.3 MB,
    an 85% cut) at unchanged 1280×720 and 50 fps, H.264 `crf 28 -preset slow`,
    faststart, no audio track.

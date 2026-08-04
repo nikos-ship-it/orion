@@ -743,6 +743,57 @@ img { max-width: 100%; }
 }
 .site-footer__nav a:hover { color: inherit; opacity: 1; }
 
+/* Circular icon buttons, in the same round language as the page's controls. */
+.site-footer__social {
+  margin-top: clamp(26px, 3.4vh, 38px);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.social {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(250, 247, 240, .26);
+  border-radius: 50%;
+  color: inherit;
+  opacity: .74;
+  transition: background .4s var(--ease), border-color .4s var(--ease),
+              color .4s var(--ease), opacity .4s ease, transform .4s var(--ease);
+}
+.social svg { width: 19px; height: 19px; display: block; }
+.social--fb svg { width: 17px; height: 17px; }
+.social:hover,
+.social:focus-visible {
+  opacity: 1;
+  color: var(--ink);
+  background: var(--saffron);
+  border-color: var(--saffron);
+  transform: translateY(-2px);
+}
+
+/* Group affiliation: the label is a quiet eyebrow, the name carries the serif so
+   it reads as a name rather than another nav item. */
+.site-footer__member {
+  margin-top: clamp(34px, 5vh, 54px);
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(20px, 2vw, 25px);
+  line-height: 1.3;
+  letter-spacing: .01em;
+}
+.site-footer__member span {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  opacity: .5;
+}
+
 .site-footer__rule {
   width: 100%;
   height: 1px;
@@ -944,72 +995,230 @@ img { max-width: 100%; }
   gap: clamp(20px, 3vw, 36px);
 }
 
-/* ── Consent banner ───────────────────────────────────────────── */
+/* ── Consent ──────────────────────────────────────────────────── */
 
+/* Bottom right, in the logo's own palette: Deep Aegean type on white, the
+   Saffron of the mark for the primary action and for a switch that is on. */
 .consent {
   position: fixed;
   z-index: 80;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: clamp(16px, 3vh, 28px);
-  max-width: 620px;
-  margin: 0 auto;
-  padding: clamp(18px, 2.2vw, 24px) clamp(20px, 2.4vw, 28px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px clamp(20px, 3vw, 32px);
+  right: clamp(14px, 2vw, 30px);
+  bottom: clamp(14px, 2vw, 30px);
+  width: min(400px, calc(100vw - 28px));
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding: clamp(20px, 2vw, 26px);
   background: var(--white);
   border: 1px solid var(--seafoam);
-  border-radius: 28px;
+  border-radius: 20px;
+  /* The only shadow on the site. It is overlay chrome, not page content, and
+     without it the card detaches from nothing on a white section. */
+  box-shadow: 0 18px 50px rgba(14, 53, 80, .14);
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity .4s var(--ease), transform .4s var(--ease);
+  transform: translateY(12px);
+  transition: opacity .45s var(--ease), transform .45s var(--ease);
 }
 .consent.is-in { opacity: 1; transform: none; }
 
-.consent__text {
-  flex: 1 1 260px;
+.consent__head { display: flex; align-items: center; gap: 10px; }
+.consent__mark { width: 34px; height: auto; display: block; }
+.consent__title {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--aegean);
+}
+
+.consent__intro {
+  margin-top: 12px;
   font-size: 14px;
   line-height: 1.55;
   color: var(--ink);
 }
 
-.consent__actions {
-  display: flex;
-  align-items: center;
-  gap: clamp(14px, 2vw, 22px);
+/* The categories are revealed by the Customise button on a phone; on a wide
+   screen the panel opens with them already showing. */
+.consent__rows { display: none; }
+.consent.is-open .consent__rows {
+  display: block;
+  margin-top: 16px;
+  border-top: 1px solid var(--seafoam);
 }
 
-.consent__accept,
-.consent__decline {
-  min-height: 44px;
-  padding: 0 20px;
+.consent__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--seafoam);
+}
+
+.consent__label {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--aegean);
+}
+.consent__label em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.consent__desc { margin-top: 3px; font-size: 12.5px; line-height: 1.5; color: var(--slate); }
+
+/* Switch */
+.consent__switch {
+  flex: 0 0 auto;
+  position: relative;
+  width: 38px;
+  height: 22px;
+  margin-top: 1px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--seafoam);
+  cursor: pointer;
+  transition: background .3s ease;
+}
+.consent__switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--white);
+  transition: transform .3s var(--ease);
+}
+.consent__switch[aria-checked="true"] { background: var(--saffron); }
+.consent__switch[aria-checked="true"] span { transform: translateX(16px); }
+/* Locked on: reads as settled rather than interactive. */
+.consent__switch[disabled] { background: var(--aegean); cursor: default; opacity: .45; }
+
+/* Allow all across the top, then the two ways of saying no side by side. A grid
+   rather than a wrapping flex row, so Decline can never end up orphaned on a
+   line of its own — and it stays as easy to reach as accepting, which is the
+   point of the thing. */
+.consent__actions {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.consent__btn--all { grid-column: 1 / -1; }
+
+.consent__btn {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .35s ease, border-color .35s ease, color .35s ease;
+}
+
+.consent__btn--all {
+  border: 0;
+  background: var(--saffron);
+  color: var(--ink);
+}
+.consent__btn--all:hover { background: var(--saffron-hover); }
+
+.consent__btn--some,
+.consent__btn--more {
+  border: 1px solid var(--seafoam);
+  background: none;
+  color: var(--aegean);
+}
+.consent__btn--some:hover,
+.consent__btn--more:hover { border-color: var(--aegean); }
+
+/* Only one of the pair is ever offered: Customise while the categories are
+   hidden, Allow selection once they are on screen and there is a selection to
+   allow. Above 640px the panel is always expanded, so Customise never shows. */
+.consent:not(.is-open) .consent__btn--some,
+.consent.is-open .consent__btn--more { display: none; }
+@media (min-width: 641px) { .consent__btn--more { display: none; } }
+
+.consent__btn--deny {
+  border: 1px solid var(--seafoam);
+  background: none;
+  color: var(--slate);
+}
+.consent__btn--deny:hover { color: var(--aegean); border-color: var(--aegean); }
+
+/* Reopen control in the footer. */
+.site-footer__cookies {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  opacity: .66;
   font-family: var(--sans);
   font-weight: 500;
   font-size: 12px;
   letter-spacing: .14em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background .4s ease, border-color .4s ease, color .4s ease;
+  transition: opacity .4s ease;
 }
+.site-footer__cookies:hover { opacity: 1; }
 
-.consent__accept {
-  background: var(--saffron);
-  color: var(--ink);
-  border: 0;
-  border-radius: var(--radius-pill);
-}
-.consent__accept:hover { background: var(--saffron-hover); }
+@media (max-width: 640px) {
+  .consent {
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    width: auto;
+    padding: 18px;
+    border-radius: 18px;
+  }
 
-.consent__decline {
-  background: none;
-  border: 0;
-  padding: 0;
-  color: var(--slate);
+  /* Compact on a phone: the four categories become columns with the switch
+     under the label. The stacked list ran to 56% of the screen height, which
+     buried the hero's primary CTA no matter how much room the hero reserved. */
+  .consent.is-open .consent__rows {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--seafoam);
+  }
+  .consent__row {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 2px;
+    border-bottom: 0;
+    text-align: center;
+  }
+  .consent__desc { display: none; }
+  .consent__label { font-size: 11px; line-height: 1.25; }
+  .consent__label em { display: none; }
+  .consent__switch { margin-top: 0; }
+
+  /* Cap the panel so it cannot swallow the screen; it scrolls inside if the
+     text ever grows. */
+  .consent { max-height: 58vh; }
+  .consent__intro { font-size: 13.5px; }
+  .consent__actions { margin-top: 14px; gap: 8px 6px; }
+  .consent__btn { min-height: 40px; padding: 0 14px; }
+
+  /* Keep the hero's primary CTA clear of the panel. Padding-bottom alone does
+     not do it: once the content is taller than 100svh the hero grows to fit,
+     and the content's bottom edge then sits at padding-top + content height,
+     independent of padding-bottom. So the top padding has to come in too. */
+  .has-consent .hero__content {
+    padding-top: clamp(64px, 9vh, 104px);
+    padding-bottom: calc(var(--consent-h, 0px) + 24px);
+    transition: padding-top .5s var(--ease), padding-bottom .5s var(--ease);
+  }
 }
-.consent__decline:hover { color: var(--aegean); }
 
 /* ── Responsive ───────────────────────────────────────────────── */
 
@@ -1027,29 +1236,6 @@ img { max-width: 100%; }
   .frame--tall,
   .row__media,
   .visit__map-frame { min-height: 0; }
-}
-
-/* On a phone the consent bar overlays the hero, so it has to stay short enough
-   to leave the primary CTA reachable. */
-@media (max-width: 640px) {
-  .consent {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    padding: 14px 16px;
-    border-radius: 22px;
-    gap: 10px 14px;
-  }
-  .consent__text { flex: 1 1 100%; font-size: 13px; line-height: 1.45; }
-  .consent__actions { width: 100%; justify-content: space-between; gap: 12px; }
-  .consent__accept { min-height: 42px; padding: 0 22px; flex: 0 1 auto; }
-
-  /* Lift the hero copy clear of the bar so "View Menu" stays tappable.
-     --consent-h is measured and published by consent.js. */
-  .has-consent .hero__content {
-    padding-bottom: calc(clamp(52px, 9vh, 104px) + var(--consent-h, 0px) + 20px);
-    transition: padding-bottom .5s var(--ease);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
