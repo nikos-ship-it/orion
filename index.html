@@ -38,7 +38,7 @@
      without a new URL a returning phone pairs new HTML with an old script.js.
      That is exactly what happened: the cached script had no preloader handling,
      so the curtain never lifted and the phone showed nothing but the preloader. -->
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
 
 <!-- Critical preloader rules, inline on purpose. The preloader is the first
@@ -336,11 +336,8 @@
       </div>
     </section>
 
-    <!-- Photograph on the left, as asked. That does mean this row and the one
-         above it both lead with the picture: with four rows and the first one
-         photo-left, strict alternation forces the last one photo-right, so one
-         of the two had to give. -->
-    <section class="row" data-reveal>
+    <!-- Photo on the right: the four rows now alternate cleanly L / R / L / R. -->
+    <section class="row row--flip" data-reveal>
       <div class="row__text">
         <p class="eyebrow">As the sun goes down</p>
         <h2 class="row__title">The evening begins when the light changes.</h2>
@@ -405,17 +402,6 @@
           </a>
           <iframe src="map.html?v=7" title="Map of Orion Ouzeri, Kallergi 8, Hersonissos" loading="lazy"></iframe>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="closing" data-reveal>
-    <div class="closing__inner">
-      <p class="eyebrow eyebrow--on-dark">Come for a plate. Stay for the evening.</p>
-      <h2 class="closing__title">Meet us at the table</h2>
-      <div class="closing__actions">
-        <a class="btn-primary" href="https://menu.orionouzeri.gr" target="_blank" rel="noopener">View Menu</a>
-        <a class="link-underline link-underline--on-dark" href="#visit">Find Us</a>
       </div>
     </div>
   </section>

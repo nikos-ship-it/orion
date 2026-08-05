@@ -62,12 +62,11 @@ img { max-width: 100%; }
 ::selection { background: var(--saffron); color: var(--ink); }
 
 /* A visible 2px focus ring (WCAG 2.4.7 / focus-states rule wants 2–4px). Orion
-   blue on light surfaces; switched to salt over the dark hero, header, closing
-   band and footer, and inside the mobile nav, where blue-on-dark is too faint. */
+   blue on light surfaces; switched to salt over the dark hero, header and
+   footer, and inside the mobile nav, where blue-on-dark is too faint. */
 :focus-visible { outline: 2px solid var(--orion-blue); outline-offset: 3px; }
 .hero :focus-visible,
 .site-header:not(.is-past) .nav-link:focus-visible,
-.closing :focus-visible,
 .site-footer :focus-visible,
 .nav-mobile :focus-visible { outline-color: var(--salt); }
 
@@ -855,46 +854,12 @@ img { max-width: 100%; }
   display: block;
 }
 
-/* ── 07b Closing call to action ───────────────────────────────── */
-
-/* A quiet Deep Aegean band that closes the page, sitting between the salt-white
-   Visit section and the footer. Deliberately the same colour as the footer so
-   the two read as one dark base rather than two stripes, with only a hairline
-   between them. */
-.closing {
-  background: var(--aegean);
-  color: var(--salt);
-  padding: clamp(96px, 17vh, 190px) var(--gutter);
-  text-align: center;
-}
-.closing__inner { max-width: 720px; margin: 0 auto; }
-.closing__title {
-  margin-top: clamp(14px, 1.6vw, 22px);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(44px, 6.4vw, 96px);
-  line-height: 1.02;
-  letter-spacing: -.02em;
-  color: var(--white);
-}
-.closing__actions {
-  margin-top: clamp(30px, 4vh, 48px);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(18px, 2.4vw, 34px);
-}
-
 /* ── 08 Footer ────────────────────────────────────────────────── */
 
 .site-footer {
   background: var(--aegean);
   color: var(--salt);
   padding: clamp(64px, 11vh, 132px) var(--gutter) clamp(32px, 5vh, 56px);
-  /* The closing band above is the same Aegean; a hairline keeps them from
-     melting into one undifferentiated block. */
-  border-top: 1px solid rgba(250, 247, 240, .10);
 }
 
 .site-footer__inner {
